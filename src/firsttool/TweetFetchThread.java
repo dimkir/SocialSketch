@@ -3,6 +3,7 @@ package firsttool;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.twitshot.ConfigParsingException;
@@ -25,49 +26,109 @@ import twitter4j.conf.ConfigurationBuilder;
  * The queue can be accessed in a thread-safe manner, thus TweetFetchThread
  * is more like passive retriever. 
  * Tweets are taken off the thread by any client. Once the tweet it taken off the queue
- * it's gone. Subsequential requests to queue, will result in the next tweet.
+ * it's gone. Subsequent requests to queue, will result in the next tweet.
  * Also when thread is empty it returns NULL.
  * Queue has certain size limit (let's say 10k items), when it's full, then oldest
  * tweets should pop off the thread.
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
 public class TweetFetchThread extends Thread
+implements IQueueAccessPoint
 {
+    /**
+     * These are constants.
+     * I always prepend them with C_ and write in CAPITAL letters.
+     */
+    //TODO: this refernce to file is BAD
     private static final String C_TWITTER_CONFIG_XML = "d:\\wamp\\www\\twitter\\src\\config\\logdaily.xml";
     private static final int C_TWEET_REFRESH_DELAY_MILLIS = 5 * 1000; // 5 seconds
     private static final int C_MAX_TWEETS_IN_THE_QUEUE = 10 * 1000; // 10k for starters. maybe need to reduce to 10 or 20 to test mechanisms
-    
-    //SomeQueueWhereWePutTweets
-    private ConfigurationBuilder cb;
-    private Twitter twitter;
-    
-    
+    private static final int C_TWEET_SEARCH_RESULT_COUNT = 100; // 10k for starters. maybe need to reduce to 10 or 20 to test mechanisms
+    private static final String C_TWITTER_DEFAULT_SEARCH_QUERY = "void OR size #p5";    
     
     /**
-     * This is the thread-safe queue throgh which exchange of data with
+     * This are twitter4j objects.
+     */
+    private ConfigurationBuilder cb;
+    private Twitter twitter;
+
+    
+    /**
+     * When querying for tweets,
+     * we need every next query only to include newly appeared
+     * (since last query) tweets. This variable holds
+     * freshest found tweet id. 
+     * -1 means it is uninitialized. Maybe need to use 0 for that purpose.
+     */
+    private static final long C_UNINITIALIZED_TWEET_ID = -1; // also this one should be always smaller than current tweet id.
+                                                             // do we have "overflow" problem?
+    private long mFreshestFoundTweetId = C_UNINITIALIZED_TWEET_ID; // latest status id, so that we don't get same tweets several times    
+    
+    /**
+     * This is the thread-safe queue through which exchange of data with
      * other threads will be happening.
      * I am not planning to block on this queue, i just chose it as it is 
      * thread-safe and provides a lot of convenient methods.
      */
     private ArrayBlockingQueue<AbstractTweet> mTheQueue = new ArrayBlockingQueue<AbstractTweet>(C_MAX_TWEETS_IN_THE_QUEUE);
     
-    @Override
-    public void run() {
-            while( true ){
-                // fetch tweets.
-                initOnce();
-                
-                query();
-                
-                zzzSleep(C_TWEET_REFRESH_DELAY_MILLIS);
-            }
+    /**
+     * This is the query which is used to fetch tweets.
+     * It has default value.
+     * It can be initialized via constructor or set via setter.
+     * As it is String, it shouldn't require any special thread safety.
+     * run() will be using this variable every iteration to query.
+     * TODO: the question is - if we change query, should we also reset the mFreshestFoundTweetId??
+     */
+    private String mCurrentQuery;
+    
+
+    public TweetFetchThread() {
+        setQuery(C_TWITTER_DEFAULT_SEARCH_QUERY);
+    }
+    
+    /**
+     * Initializes thread with non-null non empty query
+     * @param query non-null, non-empty string representing query to twitter.
+     */
+    public TweetFetchThread(String query){
+        setQuery(query);
+    }
+    
+    /**
+     * Sets query to be queried during NEXT request to twitter search.
+     * @param q non-null, non-empty string representing query to twitter.
+     * @throws IllegalArgumentException may the query string be invalid
+     * Added final modifier just because lint was complaining this was used in constructor.
+     */
+    public final void setQuery(String query){
+        if ( query == null || query.length() < 1){
+            throw new IllegalArgumentException("Query  cannot be null or empty string");
+        }        
+        mCurrentQuery = query;
     }
     
     
-    Date freshestKnownDate = null;
+    @Override
+    public void run() {
+        try{
+            while( true ){
+                initTwitter4jIfNotInitialized();
+                // fetch tweets.
+                queryAndPopulate();
+                
+                Thread.sleep(C_TWEET_REFRESH_DELAY_MILLIS);
+            }
+        }
+        catch(InterruptedException intex){
+            printException(intex);
+        }
+    }
+    
     
     /*
      * NOT USED.
+     * NOT SURE IF .compareTo() if statement is correct.
      * Returns freshest date. 
      * If ONE of the arguments is null - that's ok. Null is considered older than any date.
      * If BOTH arguments are null - this is IllegalArgumentException
@@ -90,15 +151,21 @@ public class TweetFetchThread extends Thread
         
     }
     
-    long mFreshestFoundTweetId = -1; // latest status id, so that we don't get same tweets several times
+
     
-    private void query(){
-         Query query = new Query("void OR size #p5");
+    
+    /**
+     * Queries for new tweets and populates TheQueue with them.
+     * @throws InterruptedException 
+     */
+    private void queryAndPopulate() throws InterruptedException
+    {
+         Query query = new Query(mCurrentQuery);
          query.setResultType(Query.MIXED);
-         query.setCount(100);
+         query.setCount(C_TWEET_SEARCH_RESULT_COUNT);
          
          
-         if ( mFreshestFoundTweetId != -1 ){
+         if ( mFreshestFoundTweetId != C_UNINITIALIZED_TWEET_ID ){
              System.out.println("Setting sinceId to : " + mFreshestFoundTweetId);
           query.setSinceId(mFreshestFoundTweetId);    
          }
@@ -139,8 +206,8 @@ public class TweetFetchThread extends Thread
     {
         ConfigurationBuilder cb;
         try {
-            //d:\wamp\www\twitter\src\config\logdaily.xml
-            PApplet sketch = new PApplet();
+            PApplet sketch = new PApplet(); // this is kinda hack. I dunno if it's good to instantiate 
+                                            // PApplet object. I just do this because LibConfig needs access to loadXML()
             LibConfig libConfig = new LibConfig(sketch, xmlPathfile);
             cb = new ConfigurationBuilder();
 
@@ -148,6 +215,7 @@ public class TweetFetchThread extends Thread
             cb.setOAuthConsumerSecret(libConfig.getUserSecret());
             cb.setOAuthAccessToken(libConfig.getOAuthToken());
             cb.setOAuthAccessTokenSecret(libConfig.getOAuthSecret());
+    // these are NOT valid keys from some forum post. just here for illustratoin
     //        cb.setOAuthConsumerKey("MpmV1xOOFociwNjp3FNfA");
     //        cb.setOAuthConsumerSecret("fjlsBtF98cq0VuCHXLQ78uyOz7fr8lm9WLhFbb4aU");
     //        cb.setOAuthAccessToken("6038892-lHWqBpkKhfAsJkCtyEeB3XORn9sGZP3PEy5L7eRKtk");
@@ -160,21 +228,20 @@ public class TweetFetchThread extends Thread
     }    
     
     /**
-     * Inits twitter configuration once
+     * Initializes twitter4j objects to be ready to query. Will be called every loop in
+     * run(), so this one needs to check itself not to run many times.
+     * Reads twitter credentials from file and creates as
+     * a final result instance of Twitter object.
      */
-    private void initOnce() {
-        cb = createConfigurationFromXml(C_TWITTER_CONFIG_XML);
-        twitter = new TwitterFactory(cb.build()).getInstance();        
+    private void initTwitter4jIfNotInitialized() {
+        if ( twitter  == null ){
+                cb = createConfigurationFromXml(C_TWITTER_CONFIG_XML);
+                twitter = new TwitterFactory(cb.build()).getInstance();        
+        }
     }    
     
-
-    private boolean hasNewTweets() {
-        // TODO: impelment
-        return false;
-    }
-
-    private AbstractTweet getNextNewTweet() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public AbstractTweet getNextOrNull() {
+        return mTheQueue.poll();
     }    
     
     
@@ -184,20 +251,20 @@ public class TweetFetchThread extends Thread
      * @param args 
      */
     public static void main(String[] args) {
+        
         TweetFetchThread tft = new TweetFetchThread();
+//        TweetFetchThread tft = new TweetFetchThread("#processing");
         tft.start();
+        
+        IQueueAccessPoint queueAccessPoint = tft;
+        
         while ( true ){
-            zzzSleep(100);
-            if ( tft.hasNewTweets() ){
-                while ( tft.hasNewTweets() ){  // technically the request and fetch should be one atomic opertion TODO
-                    AbstractTweet tweet = tft.getNextNewTweet();
-                    System.out.println("Tweet fetched: "  + tweet.toString());
-                }
-                System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            zzzSleep(500);
+            AbstractTweet aTweet;
+            while ( (aTweet = queueAccessPoint.getNextOrNull() ) != null){  // technically the request and fetch should be one atomic opertion TODO
+                System.out.println("Tweet fetched: "  + aTweet.toString());
             }
-            else{
-              //  System.out.println("No new tweets");
-            }
+            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         }
     }
 
@@ -221,8 +288,27 @@ public class TweetFetchThread extends Thread
      * This is called from worker thread (from run())
      * @param get 
      */
-    private void submitTweetToQueue(Status tweet) {
+    private void submitTweetToQueue(Status tweet) throws InterruptedException {
+        AbstractTweet aTweet = new AbstractTweet(tweet);
+        mTheQueue.put(aTweet); // this will block the thread if the queue is full
+                               // that's what I probably want. If noone is looking at the queu
+                               // what's the point of repeatedly query tweets?
+        
+//        mTheQueue.add(aTweet); // this will throw IllegalStateException if queue is full
+//        mTheQueue.offer(aTweet); // retrurns true/false if the queue is full
+//        mTheQueue.offer(aTweet, 100, TimeUnit.MILLISECONDS); // retrurns true/false if the queue is full
+//                                                             // but waits for the queue to free up
+        
         
     }
 
+    /**
+     * We encapsulate printing of stacktrace into method,
+     * because I read that this is how you should do this.
+     * Just in case you may want to override it in the future. Or whatever.
+     * @param ex 
+     */
+    private void printException(Throwable ex) {
+            ex.printStackTrace();
+    }
 }
