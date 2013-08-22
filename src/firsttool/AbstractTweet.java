@@ -23,6 +23,19 @@ public class AbstractTweet {
         mOriginalTweet = tweet;
     }
 
+    /**
+     * Returns some text? or actually code which will be inserted 
+     * into PDE? 
+     * TODO: maybe we need to rename it to "getCode()" because the way it
+     * is used - is to retrieve code. However I don't want to tangle
+     * different logics here. So I will leave it like it is.
+     * @precond the mOriginalTweet is not null.
+     * @return 
+     */
+    public String getText(){
+         return mOriginalTweet.getText();
+    }
+    
     @Override
     public String toString() {
         if ( mOriginalTweet == null ){
@@ -30,7 +43,15 @@ public class AbstractTweet {
         }
         
         
-        return mOriginalTweet.toString();  // first let's try this.
+        //return mOriginalTweet.toString();  // first let's try this.
+                                            // just outputs too much shit: all the
+                                            // json and stuff. messy on screen.
+        Status t = mOriginalTweet;
+        return String.format("Tweet by %s at %s: %s",  
+                                t.getUser().getScreenName(),
+                                t.getCreatedAt(),
+                                t.getText()        
+                            );
         //return mOriginalTweet.getText();
     }
     
