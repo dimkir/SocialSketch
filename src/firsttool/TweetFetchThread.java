@@ -156,6 +156,8 @@ implements IQueueAccessPoint
     
     /**
      * Queries for new tweets and populates TheQueue with them.
+     * TODO: At the moment if twitter request result in exception, we just
+     * catch it and log error message. Need to determine better business logic for that.
      * @throws InterruptedException 
      */
     private void queryAndPopulate() throws InterruptedException
@@ -166,32 +168,37 @@ implements IQueueAccessPoint
          
          
          if ( mFreshestFoundTweetId != C_UNINITIALIZED_TWEET_ID ){
-             System.out.println("Setting sinceId to : " + mFreshestFoundTweetId);
-          query.setSinceId(mFreshestFoundTweetId);    
+             logln("Setting sinceId to : " + mFreshestFoundTweetId);
+             query.setSinceId(mFreshestFoundTweetId);    
          }
          
          
             try {
+                logln("Performing query[" + query + "]");
                 QueryResult result = twitter.search(query);
                 List<Status> tweets = result.getTweets();
                 
                         
                 // we loop backwards, to put older messages to queue first
                 for (int i = tweets.size() -1; i >= 0; i--) {
-                    
-                    submitTweetToQueue(tweets.get(i));
+                    submitTweetToQueue(tweets.get(i));  // INCUIM this can block if The Queue is full
+                                                        // which is fine with us
                     Status t = tweets.get(i);
-                    String user = t.getUser().getScreenName();
-                    String msg = t.getText();
-                    Date d = t.getCreatedAt();
+//                    String user = t.getUser().getScreenName();
+//                    String msg = t.getText();
+//                    Date d = t.getCreatedAt();
                     mFreshestFoundTweetId = Math.max(t.getId(), mFreshestFoundTweetId);
-//                    freshestKnownDate =  getFreshestDate(d, freshestKnownDate);
-                    println("Tweet by " + user + " at " + d + ": " + msg);
-                    
-                };
-                System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");                
+                    logln(  String.format("Fetched tweet by %s at %s: %s",  
+                                t.getUser().getScreenName(),
+                                t.getCreatedAt(),
+                                t.getText()         )
+                          );
+                }// for
+                logln("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");                
+                
             } catch (TwitterException te) {
-                println("Couldn't connect: " + te);
+                // TODO: see current method title for more details. Need better handling logic for this.
+                logln("Couldn't perform twitter query: " + te);
             }
          
     }
@@ -240,8 +247,13 @@ implements IQueueAccessPoint
         }
     }    
     
+    /**
+     * Just returns next tweet from the queue or null.
+     * @return 
+     */
+    @Override
     public AbstractTweet getNextOrNull() {
-        return mTheQueue.poll();
+        return mTheQueue.poll(); // poll() doesn't wait, but returns null if nothing available
     }    
     
     
@@ -307,8 +319,19 @@ implements IQueueAccessPoint
      * because I read that this is how you should do this.
      * Just in case you may want to override it in the future. Or whatever.
      * @param ex 
+     * TODO: this uses standard System.err stream or smth need to make it more abstract.
+     * 
      */
     private void printException(Throwable ex) {
             ex.printStackTrace();
+    }
+
+    /**
+     * This is "delegate" which allows abstract logging from within 
+     * the thed.
+     * @param format 
+     */
+    private void logln(String msg) {
+        println(msg);
     }
 }
