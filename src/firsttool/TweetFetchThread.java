@@ -3,12 +3,8 @@ package firsttool;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.twitshot.ConfigParsingException;
-import org.twitshot.LibConfig;
-import processing.core.PApplet;
 import static processing.core.PApplet.println;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -212,25 +208,26 @@ implements IQueueAccessPoint
     private ConfigurationBuilder createConfigurationFromXml(String xmlPathfile)
     {
         ConfigurationBuilder cb;
-        try {
-            PApplet sketch = new PApplet(); // this is kinda hack. I dunno if it's good to instantiate 
-                                            // PApplet object. I just do this because LibConfig needs access to loadXML()
-            LibConfig libConfig = new LibConfig(sketch, xmlPathfile);
-            cb = new ConfigurationBuilder();
-
-            cb.setOAuthConsumerKey(libConfig.getUserToken());
-            cb.setOAuthConsumerSecret(libConfig.getUserSecret());
-            cb.setOAuthAccessToken(libConfig.getOAuthToken());
-            cb.setOAuthAccessTokenSecret(libConfig.getOAuthSecret());
-    // these are NOT valid keys from some forum post. just here for illustratoin
-    //        cb.setOAuthConsumerKey("MpmV1xOOFociwNjp3FNfA");
-    //        cb.setOAuthConsumerSecret("fjlsBtF98cq0VuCHXLQ78uyOz7fr8lm9WLhFbb4aU");
-    //        cb.setOAuthAccessToken("6038892-lHWqBpkKhfAsJkCtyEeB3XORn9sGZP3PEy5L7eRKtk");
-    //        cb.setOAuthAccessTokenSecret("REyXt8jvTdGUH3UkvGRJcXzB0nAGCjWvc39IlpM2NY");
-        } catch (ConfigParsingException ex) {
-            Logger.getLogger(TweetFetchThread.class.getName()).log(Level.SEVERE, null, ex);
-            throw new RuntimeException("Early crash is good. Can't access configuration");
-        }
+       cb = new ConfigurationBuilder();
+//        try {
+//            PApplet sketch = new PApplet(); // this is kinda hack. I dunno if it's good to instantiate 
+//                                            // PApplet object. I just do this because LibConfig needs access to loadXML()
+//            LibConfig libConfig = new LibConfig(sketch, xmlPathfile);
+//
+//            cb.setOAuthConsumerKey(libConfig.getUserToken());
+//            cb.setOAuthConsumerSecret(libConfig.getUserSecret());
+//            cb.setOAuthAccessToken(libConfig.getOAuthToken());
+//            cb.setOAuthAccessTokenSecret(libConfig.getOAuthSecret());
+            
+    // these are keys for my test twitter account. Need to make them configurable via file.
+            cb.setOAuthConsumerKey("4bPTUhOaoC2MDpqC92AA");
+            cb.setOAuthConsumerSecret("vqoUTGKiEB5hx5LVJ94qUngI5YQQy4qdmQVhMnG1M");
+            cb.setOAuthAccessToken("1413163736-GHX3aerScs0vSGGT5gI7x0s2lIsr9jxe8yFGAaq");
+            cb.setOAuthAccessTokenSecret("1BynWanYttJWDy5mfYxatvqQtdKn3SXpdNGVqlGSJY");
+//        } catch (ConfigParsingException ex) {
+//            Logger.getLogger(TweetFetchThread.class.getName()).log(Level.SEVERE, null, ex);
+//            throw new RuntimeException("Early crash is good. Can't access configuration");
+//        }
         return cb;
     }    
     
