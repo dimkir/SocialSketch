@@ -67,6 +67,8 @@ implements Tool, ActionListener, IOnTweetPickListener
         writeLn("Now executing run() method. Has run() been called already?: " + mRunWasCalledAlredy);
         printCharacterCount();
         sketch = mEditor.getSketch();
+        
+        
 
         mRunWasCalledAlredy = true;
         
@@ -92,7 +94,7 @@ implements Tool, ActionListener, IOnTweetPickListener
 
     @Override
     public String getMenuTitle() {
-        return "Tweet to sketch tool";
+        return "== tweet2sketch tool ==";
     }
     
     
