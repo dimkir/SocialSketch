@@ -27,7 +27,7 @@ implements NewJFrame.IOnNewTweetsListener
     public EasyFrame() {
         super();
         listModel = new DefaultListModel();
-        listModel.addElement("No elements availble");
+        listModel.addElement("Searching for processing sketches on twitter...");
         setListModel(listModel);
         setOnNewTweetsListener(this);
         
