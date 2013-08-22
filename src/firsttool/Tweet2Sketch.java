@@ -30,7 +30,7 @@ import processing.app.tools.Tool;
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA  02111-1307  USA
  */
-public class FirstTool  
+public class Tweet2Sketch  
 implements Tool,  IOnTweetPickListener
 {
     Editor mEditor;
