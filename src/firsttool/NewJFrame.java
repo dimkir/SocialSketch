@@ -1,5 +1,6 @@
 package firsttool;
 
+import firsttool.ServiceLocator.ServiceRecord;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -182,17 +183,24 @@ public class NewJFrame extends javax.swing.JFrame {
     protected void setListModel(ListModel lmodel){
         jList1.setModel(lmodel);
     }
-    
-    /**
-     * This is the thread which is doing the polling job.
-     */
-    protected TweetFetchThread thread;
+
+//    // there's no need to keep this reference here.
+//    // as NewJFrame only thinks of this as IQueueAccessPoint
+//    // and doesn't care of it's implementation. NewjFrame simply knows
+//    // that it should poll at regular intervals the queue. but how it's 
+//    // implemented it's not his business.
+//    /**
+//     * This is the thread which is doing the polling job.
+//     */
+//    protected TweetFetchThread thread;
     
     private IQueueAccessPoint startTweetFetchService() {
-        thread = new TweetFetchThread();
-        thread.start();
-        return thread;
-        
+//        TweetFetchThread thread = new TweetFetchThread();
+//        thread.start();
+//        return thread;
+        ServiceRecord service = ServiceLocator.getSerivce(ServiceLocator.SVC_LIVE_TWEET_QUEUE);
+        return (IQueueAccessPoint) service;  // yeah we have cast here, but hurray! we're decoupled
+                                             // now from instantiation of the service
     }
     
     /**

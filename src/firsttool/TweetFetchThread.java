@@ -1,5 +1,6 @@
 package firsttool;
 
+import firsttool.ServiceLocator.ServiceRecord;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -29,7 +30,8 @@ import twitter4j.conf.ConfigurationBuilder;
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
 public class TweetFetchThread extends Thread
-implements IQueueAccessPoint
+implements IQueueAccessPoint,
+           ServiceRecord
 {
     /**
      * These are constants.
@@ -330,5 +332,14 @@ implements IQueueAccessPoint
      */
     private void logln(String msg) {
         println(msg);
+    }
+
+    /**
+     * Simply returns one line description.
+     * @return 
+     */
+    @Override
+    public String getServiceDescription() {
+        return "This serivice provides live stream of tweets matching certain query";
     }
 }
