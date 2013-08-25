@@ -1,13 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package firsttool;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -16,6 +11,9 @@ import javax.swing.SwingUtilities;
  * When using this frame, all of the "building of frame" is hidden
  * in the super class
  * this should be just "controller" for logic of the elements.
+ * This class should have NO dependencies on the PDE Tool or Editor or
+ * whatever elements. This class should provide ability for those classes
+ * to Observe it.
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
 public class EasyFrame extends NewJFrame
