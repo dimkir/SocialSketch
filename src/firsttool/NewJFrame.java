@@ -4,12 +4,21 @@ import firsttool.ServiceLocator.ServiceRecord;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.ListModel;
 import javax.swing.Timer;
 
 /**
- *
+ * What's the purpose (conforming to SingleResponsibilityPrinciple)
+ * of this class?
+ * -construct frame capable of displaying Tweets? 
+ *                                          ^^^^ ( how exactly do we define this "Tweet")?
+ * -display frame with updated tweets?
+ * -implement events when user "clicks" on certain things??
+ * At what abstraction level do we work?
+ * Which "abstract" concepts does this class control?
+ * 
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
 public class NewJFrame extends javax.swing.JFrame {
@@ -21,6 +30,8 @@ public class NewJFrame extends javax.swing.JFrame {
      */
     public NewJFrame() {
         initComponents();
+        //jList1.setModel(new DefaultListModel<AbstractTweet>());
+        jList1.setCellRenderer(new TweetCellRender());
         mQueueAccessPoint = startTweetFetchService(); // we start thread, but we don't
                                                      // care much about the fact that it's thread
                                                      // fetching. All we care is that 

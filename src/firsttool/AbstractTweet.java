@@ -1,5 +1,13 @@
 package firsttool;
 
+// DK: I am not a big fan of putting here dependency on ImageIcon.. but 
+// i guess that's the direction we're going.
+// in future this should NOT be anything from Swing. but either more abstract
+// "java.awt.Image" or maybe even just stream of bytes. Because I want (at least 
+// as far as I can, keep AbstractTweet as "platform-independent" as possible.
+import java.awt.Image;
+import java.net.URL;
+import javax.swing.ImageIcon;
 import twitter4j.Status;
 
 /**
@@ -23,6 +31,19 @@ public class AbstractTweet {
         mOriginalTweet = tweet;
     }
 
+    /**
+     * Returns ImageIcon (in swing format) of the
+     * tweet author.
+     * @return 
+     */
+    public ImageIcon getImageIcon(){
+        // load image from resource
+        URL url = getClass().getClassLoader().getResource("resources/monotone_smiley_happy.png");
+        
+        ImageIcon icon  = new ImageIcon(url);
+        return icon;
+    }
+    
     /**
      * Returns some text? or actually code which will be inserted 
      * into PDE? 
