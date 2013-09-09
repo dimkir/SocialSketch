@@ -2,7 +2,9 @@ package firsttool;
 
 import firsttool.ServiceLocator.ServiceRecord;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,6 +19,7 @@ import twitter4j.conf.ConfigurationBuilder;
 
 /**
  * This thread is responsible for fetching threads from Twitter.
+ * 
  * Upon start of the thread it requests tweets and puts them into the queue.
  * Then it continues running, trying to fetch new threads, once new arrive, they're
  * added to the queue.
@@ -43,6 +46,21 @@ implements IQueueAccessPoint,
     private static final int C_MAX_TWEETS_IN_THE_QUEUE = 10 * 1000; // 10k for starters. maybe need to reduce to 10 or 20 to test mechanisms
     private static final int C_TWEET_SEARCH_RESULT_COUNT = 100; // 10k for starters. maybe need to reduce to 10 or 20 to test mechanisms
     private static final String C_TWITTER_DEFAULT_SEARCH_QUERY = "void OR size #p5";    
+
+    /**
+     * Just outputs proxy settings for current VM
+     */
+    private static void printProxyInfo() {
+        String host = System.getProperty("http.proxyHost");
+        String port = System.getProperty("http.proxyPort");
+        System.out.println(String.format("Current proxy [%s] and port [%s].", host, port));
+
+//        System.out.println("Resetting current proxy settings to nothing");
+//        System.setProperty("http.proxyHost", "");
+//        System.setProperty("http.proxyPort", "");
+
+        
+    }
     
     /**
      * This are twitter4j objects.
@@ -65,13 +83,39 @@ implements IQueueAccessPoint,
     /**
      * This is the thread-safe queue through which exchange of data with
      * other threads will be happening.
+     * 
      * I am not planning to block on this queue, i just chose it as it is 
      * thread-safe and provides a lot of convenient methods.
+     * Incuim (IN CUrrent IMplementation) current thread will block when
+     * trying to put stuff on this this queue and the queue is full. 
+     * It matches our domain purpose here: if there's noone
+     * reading the queue, there's no point continuing job of fetching tweets from server.
      */
     private ArrayBlockingQueue<AbstractTweet> mTheQueue = new ArrayBlockingQueue<AbstractTweet>(C_MAX_TWEETS_IN_THE_QUEUE);
     
+            // TODO: i think we won't use these structures in this class. TBDeleted.    
+            //    /**
+            //     * This is the queue which will hold skeletons of the AbstractTweet.
+            //     * 
+            //     * The idea behind it is that AbstractTweet is a "composite" data object,
+            //     * meaning that it contains "text data" fetched via single query to twitter 
+            //     * searchAPI, but it also must contain other elements, like images and other 
+            //     * stuff which must be loaded concurrently (like images).
+            //     * This explanation is not the best, but it's something ;)
+            //     */
+            //    private Queue<AbstractTweet> mSkeletonQueue = new LinkedList<AbstractTweet>();
+            //    
+            //    /**
+            //     * This is job queue- the images to be downloaded or other resources,
+            //     * then once they're downloaded they may be wrapped into
+            //     * objects and applied to the skeleton (skeleton of AbstractTweet)
+            //     */
+            //    private JOB_QUEUE;
+            //    
+    
     /**
      * This is the query which is used to fetch tweets.
+     * 
      * It has default value.
      * It can be initialized via constructor or set via setter.
      * As it is String, it shouldn't require any special thread safety.
@@ -87,6 +131,7 @@ implements IQueueAccessPoint,
     
     /**
      * Initializes thread with non-null non empty query
+     * 
      * @param query non-null, non-empty string representing query to twitter.
      */
     public TweetFetchThread(String query){
@@ -95,6 +140,7 @@ implements IQueueAccessPoint,
     
     /**
      * Sets query to be queried during NEXT request to twitter search.
+     * 
      * @param q non-null, non-empty string representing query to twitter.
      * @throws IllegalArgumentException may the query string be invalid
      * Added final modifier just because lint was complaining this was used in constructor.
@@ -112,9 +158,21 @@ implements IQueueAccessPoint,
         try{
             while( true ){
                 initTwitter4jIfNotInitialized();
-                // fetch tweets.
-                queryAndPopulate();
                 
+                // fetch skeletons. and it should populate (what?) skeleton queue?
+                queryAndPopulate(mCurrentQuery, mTheQueue);
+                
+                // process skeleton
+                // how do we process skeletons?
+                        // we just have to get jobs from them
+                        // and what?
+                // process jobs
+                    // just do what we need to download
+                    // and 
+                
+                // TODO: this like in game-loop should discount delay, relatively to
+                // the time taken by the previous loop, or avoid sleeping
+                // if job thred isn't empty
                 Thread.sleep(C_TWEET_REFRESH_DELAY_MILLIS);
             }
         }
@@ -154,17 +212,24 @@ implements IQueueAccessPoint,
     
     /**
      * Queries for new tweets and populates TheQueue with them.
+     * 
      * TODO: At the moment if twitter request result in exception, we just
      * catch it and log error message. Need to determine better business logic for that.
      * @throws InterruptedException 
      */
-    private void queryAndPopulate() throws InterruptedException
+    private void queryAndPopulate(String theQuery, ArrayBlockingQueue blockingQueue) throws InterruptedException
+                                                        // this prob. should be some "regular" queue,
+                                                        // not obligatory blocking queue
     {
-         Query query = new Query(mCurrentQuery);
+         Query query = new Query(theQuery);
          query.setResultType(Query.MIXED);
+//         query.setResultType(Query.POPULAR);
          query.setCount(C_TWEET_SEARCH_RESULT_COUNT);
          
-         
+         // this is to make sure that we don't receive same search
+         // results twice. But this only works if we make THE SAME 
+         // query. So this code will have to go soon.. (as we'll gonna be 
+         // doing different queries)
          if ( mFreshestFoundTweetId != C_UNINITIALIZED_TWEET_ID ){
              logln("Setting sinceId to : " + mFreshestFoundTweetId);
              query.setSinceId(mFreshestFoundTweetId);    
@@ -179,7 +244,7 @@ implements IQueueAccessPoint,
                         
                 // we loop backwards, to put older messages to queue first
                 for (int i = tweets.size() -1; i >= 0; i--) {
-                    submitTweetToQueue(tweets.get(i));  // INCUIM this can block if The Queue is full
+                    submitTweetToQueue(tweets.get(i), blockingQueue);  // INCUIM this can block if The Queue is full
                                                         // which is fine with us
                     Status t = tweets.get(i);
 //                    String user = t.getUser().getScreenName();
@@ -263,6 +328,8 @@ implements IQueueAccessPoint,
      */
     public static void main(String[] args) {
         
+        printProxyInfo();
+        
         TweetFetchThread tft = new TweetFetchThread();
 //        TweetFetchThread tft = new TweetFetchThread("#processing");
         tft.start();
@@ -299,9 +366,9 @@ implements IQueueAccessPoint,
      * This is called from worker thread (from run())
      * @param get 
      */
-    private void submitTweetToQueue(Status tweet) throws InterruptedException {
+    private void submitTweetToQueue(Status tweet, ArrayBlockingQueue<AbstractTweet> queue) throws InterruptedException {
         AbstractTweet aTweet = new AbstractTweet(tweet);
-        mTheQueue.put(aTweet); // this will block the thread if the queue is full
+        queue.put(aTweet); // this will block the thread if the queue is full
                                // that's what I probably want. If noone is looking at the queu
                                // what's the point of repeatedly query tweets?
         
