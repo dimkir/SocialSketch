@@ -4,3 +4,4 @@ manifest.mf
 **/rubbish/
 build/
 dist/
+/src/firsttool/rubbish/
