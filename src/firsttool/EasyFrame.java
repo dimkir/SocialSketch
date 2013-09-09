@@ -16,8 +16,9 @@ import javax.swing.SwingUtilities;
  * to Observe it.
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
-public class EasyFrame extends NewJFrame
-implements NewJFrame.IOnNewTweetsListener
+public class EasyFrame extends TweetBasicUI
+implements TweetBasicUI.IOnNewTweetsListener,
+            ServiceLocator.ServiceRecord
 {
 
     private DefaultListModel listModel;
@@ -88,6 +89,11 @@ implements NewJFrame.IOnNewTweetsListener
     private IOnTweetPickListener mOnTweetPickListener = null;
     void setOnTweetPickListener(IOnTweetPickListener listener){
         mOnTweetPickListener = listener;
+    }
+
+    @Override
+    public String getServiceDescription() {
+        return "EasyFrame service for simple UI with tweets";
     }
     
     

@@ -13,25 +13,35 @@ import javax.swing.ListModel;
 import javax.swing.Timer;
 
 /**
+ * Offer UI for displaying processing-related-tweets and convenient
+ * API so that Processing Tool can conveniently communicate with the UI.
+ * 
  * What's the purpose (conforming to SingleResponsibilityPrinciple)
  * of this class?
  * -construct frame capable of displaying Tweets? 
  *                                          ^^^^ ( how exactly do we define this "Tweet")?
  * -display frame with updated tweets?
  * -implement events when user "clicks" on certain things??
+ * 
  * At what abstraction level do we work?
+ * -----------------------------------------
+ * 
+ * 
+ * 
  * Which "abstract" concepts does this class control?
  * 
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
-public class NewJFrame extends javax.swing.JFrame {
+public class TweetBasicUI extends javax.swing.JFrame
+implements IProTweetUI
+{
 
     private IQueueAccessPoint mQueueAccessPoint;
     private final Timer timer;
     /**
      * Creates new form NewJFrame
      */
-    public NewJFrame() {
+    public TweetBasicUI() {
         initComponents();
         //jList1.setModel(new DefaultListModel<AbstractTweet>());
         jList1.setCellRenderer(new TweetCellRender());
@@ -152,20 +162,22 @@ public class NewJFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addGap(92, 92, 92)
-                .addComponent(btnInsertIntoPDE, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(btnReplaceInPDE, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(19, 19, 19)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(chkAlwaysOnTop)
+                        .addContainerGap()
+                        .addComponent(jLabel1)
+                        .addGap(92, 92, 92)
+                        .addComponent(btnInsertIntoPDE, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnReplaceInPDE, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 495, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(19, 19, 19)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(chkAlwaysOnTop)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 495, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -219,20 +231,20 @@ public class NewJFrame extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(NewJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TweetBasicUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(NewJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TweetBasicUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(NewJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TweetBasicUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(NewJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TweetBasicUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new NewJFrame().setVisible(true);
+                new TweetBasicUI().setVisible(true);
             }
         });
     }
