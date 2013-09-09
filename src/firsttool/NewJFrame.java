@@ -3,9 +3,12 @@ package firsttool;
 import firsttool.ServiceLocator.ServiceRecord;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.Timer;
 
@@ -23,7 +26,7 @@ import javax.swing.Timer;
  */
 public class NewJFrame extends javax.swing.JFrame {
 
-    IQueueAccessPoint mQueueAccessPoint;
+    private IQueueAccessPoint mQueueAccessPoint;
     private final Timer timer;
     /**
      * Creates new form NewJFrame
@@ -32,6 +35,28 @@ public class NewJFrame extends javax.swing.JFrame {
         initComponents();
         //jList1.setModel(new DefaultListModel<AbstractTweet>());
         jList1.setCellRenderer(new TweetCellRender());
+        
+        
+        jList1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //super.mouseClicked(e); //To change body of generated methods, choose Tools | Templates.
+                JList list = (JList) e.getSource();
+                System.out.println("JList got click event, at the moment: " + e.getClickCount() + " click(s) event");
+                if (e.getClickCount() == 2) {
+                    int index = list.locationToIndex(e.getPoint());
+                    if ( index < 0 ){
+                        return; // no supportive model.
+                    }
+                    ListModel dlm = list.getModel();
+                    Object item = dlm.getElementAt(index);
+                    list.ensureIndexIsVisible(index); // what is this? scrolling to visible?
+                    System.out.println("Double clicked on " + item);
+                }
+            }
+        }
+    );
+        
         mQueueAccessPoint = startTweetFetchService(); // we start thread, but we don't
                                                      // care much about the fact that it's thread
                                                      // fetching. All we care is that 
@@ -96,39 +121,51 @@ public class NewJFrame extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
         jLabel1 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        btnInsertIntoPDE = new javax.swing.JButton();
+        btnReplaceInPDE = new javax.swing.JButton();
+        chkAlwaysOnTop = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jList1.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
         jScrollPane1.setViewportView(jList1);
 
         jLabel1.setText("Tweets");
 
-        jButton1.setText("Insert into PDE");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnInsertIntoPDE.setText("Insert into PDE");
+        btnInsertIntoPDE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnInsertIntoPDEActionPerformed(evt);
+            }
+        });
+
+        btnReplaceInPDE.setText("Replace in PDE");
+
+        chkAlwaysOnTop.setText("Set Always On Top");
+        chkAlwaysOnTop.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkAlwaysOnTopActionPerformed(evt);
             }
         });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(92, 92, 92)
-                .addComponent(jButton1)
+                .addComponent(btnInsertIntoPDE, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(btnReplaceInPDE, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(19, 19, 19)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1011, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(chkAlwaysOnTop)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 495, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -137,18 +174,33 @@ public class NewJFrame extends javax.swing.JFrame {
                 .addGap(9, 9, 9)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1)
-                    .addComponent(jButton1))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btnInsertIntoPDE)
+                        .addComponent(btnReplaceInPDE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 464, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 501, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addComponent(chkAlwaysOnTop)
+                .addContainerGap(27, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnInsertIntoPDEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsertIntoPDEActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_btnInsertIntoPDEActionPerformed
+
+    private void chkAlwaysOnTopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkAlwaysOnTopActionPerformed
+        // TODO add your handling code here:
+        JCheckBox chkbox =  (JCheckBox) evt.getSource();
+        if ( chkbox.isSelected() ){
+            setAlwaysOnTop(true);
+        }
+        else{
+            setAlwaysOnTop(false);
+        }
+    }//GEN-LAST:event_chkAlwaysOnTopActionPerformed
 
     /**
      * @param args the command line arguments
@@ -185,7 +237,9 @@ public class NewJFrame extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton btnInsertIntoPDE;
+    private javax.swing.JButton btnReplaceInPDE;
+    private javax.swing.JCheckBox chkAlwaysOnTop;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JList jList1;
     private javax.swing.JScrollPane jScrollPane1;
@@ -222,7 +276,7 @@ public class NewJFrame extends javax.swing.JFrame {
      * @return 
      */
     protected JButton getSelectButton(){
-        return jButton1;
+        return btnInsertIntoPDE;
     }
     
 
