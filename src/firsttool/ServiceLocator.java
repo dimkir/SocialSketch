@@ -1,7 +1,11 @@
 package firsttool;
 
+import firsttool.tweetqueue.TweetFetchThread;
+import firsttool.ui.IBasicPassiveUI;
+import firsttool.ui.TweetBasicUI;
+
 /**
- * This is service locator class. As decribed in 
+ * This is service locator class. As described in 
  * {@see http://gameprogrammingpatterns.com/service-locator.html}
  * In order to decouple classes(components) of this package
  * as much as possible. It seems currently beneficial
@@ -21,15 +25,20 @@ public class ServiceLocator {
     
     
     
-    public static final String SVC_EASY_TWEETED_SKETCHES_UI = "easy_tweeted_sketches_ui";
-    private static EasyFrame smEasyFrame;
+    public static final String SVC_BASIC_SKETCH_MODDER = "basic_sketch_modder";
+    private static SketchModder smSketchModder;
+
+    
+    public static final String SVC_BASIC_PASSIVE_UI = "svc_basic_passive_ui";
+    private static IBasicPassiveUI smBasicPassiveUI;
 
     /**
      * WARNING: Be sure to include here all the available service names.
      */
     private static final String[] C_AVAILABLE_SERVICE_NAMES = {
                 SVC_LIVE_TWEET_QUEUE,
-                SVC_EASY_TWEETED_SKETCHES_UI
+                SVC_BASIC_SKETCH_MODDER,
+                SVC_BASIC_PASSIVE_UI
     };
     
     /**
@@ -49,12 +58,20 @@ public class ServiceLocator {
             
         }
         
-        if ( serviceName.equals( SVC_EASY_TWEETED_SKETCHES_UI )){
-            if ( smEasyFrame == null ){
-                initializeEasyFrame();
+        if ( serviceName.equals( SVC_BASIC_SKETCH_MODDER )){
+            if ( smSketchModder == null ){
+                smSketchModder = initializeEasyFrame();
             }
-            return smEasyFrame;
+            return smSketchModder;
         }
+        
+        
+        if ( serviceName.equals( SVC_BASIC_PASSIVE_UI )){
+            if ( smBasicPassiveUI == null ){
+                smBasicPassiveUI = initializeBasicPassiveUI();
+            }
+            return (ServiceRecord) smBasicPassiveUI;
+        }        
         
         throw new IllegalArgumentException("Service named [" + serviceName + "] cannot be found");
     }
@@ -62,8 +79,8 @@ public class ServiceLocator {
     /**
      * Encapsulates initialization of the EasyFrame
      */
-    private static void initializeEasyFrame() {
-        smEasyFrame = new EasyFrame();
+    private static SketchModder initializeEasyFrame() {
+        return new SketchModder();
     }
 
     
@@ -73,6 +90,10 @@ public class ServiceLocator {
      */
     public static String[] getAvailableServiceNames() {
         return C_AVAILABLE_SERVICE_NAMES;
+    }
+
+    private static IBasicPassiveUI initializeBasicPassiveUI() {
+        return new TweetBasicUI();
     }
             
             
@@ -109,8 +130,8 @@ public class ServiceLocator {
             
             System.out.println("Found service: [" +  svc + "] with description: " + sinstance.getServiceDescription());
             
-            if ( sinstance instanceof EasyFrame ){
-                EasyFrame frm = (EasyFrame) sinstance;
+            if ( sinstance instanceof ISketchModder ){
+                SketchModder frm = (SketchModder) sinstance;
                 frm.setVisible(true);
             }
             
