@@ -36,7 +36,7 @@ public class SwingQueueAccessPointEventWrapper {
      * with default delay.
      * @param listener non-null
      */
-    public SwingQueueAccessPointEventWrapper(IOnNewTweet listener){
+    public SwingQueueAccessPointEventWrapper(IOnNewTweet listener) throws ServiceLocator.ServiceLocatorException{
         this(listener, C_DEFAULT_REFRESH_DELAY_MILLIS);
     }
     
@@ -46,7 +46,8 @@ public class SwingQueueAccessPointEventWrapper {
      * @param listener
      * @param refreshDelayMillis 
      */
-    public SwingQueueAccessPointEventWrapper(IOnNewTweet listener, int refreshDelayMillis){
+    public SwingQueueAccessPointEventWrapper(IOnNewTweet listener, int refreshDelayMillis) throws ServiceLocator.ServiceLocatorException
+    {
         if ( listener == null ){
             throw new IllegalArgumentException("Listener parameter cannot be null");
         }
