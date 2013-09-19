@@ -133,4 +133,18 @@ public interface ISketchModder {
         public static final int ACTION_MODDER_REQUESTS_CODE = 3;
         
     }
+    
+    /**
+     * Exception thrown by modder.
+     */
+    class ModderEx extends Exception{
+
+        public ModderEx(String message) {
+            super(message);
+        }
+
+        public ModderEx(Throwable cause) {
+            super(cause);
+        }
+    }
 }
