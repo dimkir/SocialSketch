@@ -13,7 +13,10 @@ import firsttool.ui.IBasicPassiveUI.BasicPassiveUIAction;
 import firsttool.ui.IBasicPassiveUI.IBasicUIActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -49,25 +52,39 @@ implements
     private IOnModderActionListener mModderActionListener;
     
     
-    private CodePoster codePoster = new CodePoster();
+    private final CodePoster codePoster;
     
     private TweetPoster tweetPoster = new TweetPoster();
     
     /**
      * Runs on swing EDT thread.
+     * 
+     * Kinda should be failable.
+     * 
+     * @throws ModderEx when some initialization fails.
      */
-    public SketchModder() {
-        ui = (IBasicPassiveUI) ServiceLocator.getSerivce(ServiceLocator.SVC_BASIC_PASSIVE_UI);
-        ui.setOnBasicUIActionListener(new MyBasicUIListener());
-        
-        //TODO: decide which on close operation we use
-        ui.getJFrame().setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        
-        setupTweetFetching(); // tweets will be fetched into addTweetsToUI() method
-        
-        // still won't block but just in case.
-        ui.setVisible(true); // as we're running on EDT thread, this shouldn't block 
-
+    public SketchModder() throws ModderEx, ServiceLocator.ServiceLocatorException
+    {
+        try {
+            ui = (IBasicPassiveUI) ServiceLocator.getSerivce(ServiceLocator.SVC_BASIC_PASSIVE_UI);
+            ui.setOnBasicUIActionListener(new MyBasicUIListener());
+            
+            //TODO: decide which on close operation we use
+            ui.getJFrame().setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+            
+            setupTweetFetching(); // tweets will be fetched into addTweetsToUI() method
+            
+            codePoster = new CodePoster(); // throws IOException
+            
+            // as we're running on EDT thread, this shouldn't block 
+            ui.setVisible(true); // as we're running on EDT thread, this shouldn't block
+            
+            
+            
+        } catch (IOException ex) {
+            Logger.getLogger(SketchModder.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ModderEx(ex);
+        }
     
     }
 
@@ -124,9 +141,20 @@ implements
     
     
     private static void createGUI(){
-        SketchModder modder = new SketchModder();
+        try {
+            SketchModder modder = new SketchModder();
             
             modder.setVisible(true);
+            
+            
+            
+        } catch (ModderEx ex) {
+            Logger.getLogger(SketchModder.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, ex.getMessage());
+        } catch (ServiceLocator.ServiceLocatorException ex) {
+            Logger.getLogger(SketchModder.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, ex.getMessage());
+        }
             
             
     }
@@ -142,7 +170,7 @@ implements
 //     */
 //    protected TweetFetchThread thread;
     
-    private IQueueAccessPoint startTweetFetchService() {
+    private IQueueAccessPoint startTweetFetchService() throws ServiceLocator.ServiceLocatorException {
 //        TweetFetchThread thread = new TweetFetchThread();
 //        thread.start();
 //        return thread;
@@ -176,7 +204,7 @@ implements
         sendCodeAsReply(text, aTweet);
     }
 
-    private void setupTweetFetching() {
+    private void setupTweetFetching() throws ServiceLocator.ServiceLocatorException {
         
         Timer timer;        
         mQueueAccessPoint = startTweetFetchService(); // we start thread, but we don't
@@ -230,7 +258,7 @@ implements
 
                 if (evt.isSuccessful()) {
                     String postedUrl = evt.getUrlString();
-                   tweetPoster.postTweetReply("Replied to tweet with code: " + postedUrl, aTweet, new ITweetPostComplete() {
+                   tweetPoster.postTweetReply("I remixed your sketch void size #p5 " + postedUrl, aTweet, new ITweetPostComplete() {
 
                         @Override
                         public void onTweetPostComplete(TweetPostCompleteEvent evt) {
@@ -238,10 +266,11 @@ implements
                                 
                                 // technically we should maybe force-refresh the screen?
                                 // ??
-                                 throw new UnsupportedOperationException("Not supported yet.");
+                                 JOptionPane.showMessageDialog(null, "<html><B>Succesfully replied<b> to the tweet with: <a href='" + evt.getTweetUrl() + "'>" +
+                                                    evt.getTweetUrl() + "</a></html>");
                             }
                             else{
-                                JOptionPane.showMessageDialog(null, "Cannot post tweet to internet");
+                                JOptionPane.showMessageDialog(null, "Cannot post tweet to internet, error: " + evt.getException().getMessage());
                                         
                             }
                         }
@@ -289,7 +318,8 @@ implements
             switch ( buiAction ){
                 case REPLY_TO_TWEET:
                     // we need to save somewhere the tweet.
-                    fireModderAction(new ModderAction("?---??", ModderActionTypes.ACTION_MODDER_REQUESTS_CODE));
+                    AbstractTweet aTweet0 = (AbstractTweet) action.getParam("tweet");
+                    fireModderAction(new ModderAction("?---??", ModderActionTypes.ACTION_MODDER_REQUESTS_CODE).setTweet(aTweet0));
                     break;
                 case SELECT_TWEET_PRIMARY:
                     AbstractTweet aTweet = (AbstractTweet) action.getParam("tweet");
