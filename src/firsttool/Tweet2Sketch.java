@@ -1,10 +1,18 @@
 package firsttool;
 
+import components.IconDemoApp;
 import firsttool.ISketchModder.IOnModderActionListener;
 import firsttool.tweetqueue.AbstractTweet;
 import firsttool.ISketchModder.ModderAction;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import processing.app.Base;
 import processing.app.Editor;
+import processing.app.Sketch;
 import processing.app.tools.Tool;
 
 /**
@@ -44,6 +52,7 @@ implements Tool
 
     private boolean mInitWasCalledAlredy = false;
     private ISketchModder mSketchModder;
+    private Sketch sketch;
     
     @Override
     public void init(Editor editor) {
@@ -60,21 +69,29 @@ implements Tool
      */
     @Override
     public void run() {
+        sketch = mEditor.getSketch();
+        printSketchFolder();
+        
 //        writeLn("Now executing run() method. Has run() been called already?: " + mRunWasCalledAlredy);
-        if ( mSketchModder == null) {
-                mSketchModder = initModder(); // and adds listeners
+        try {
+
+            if ( mSketchModder == null) {
+                    mSketchModder = initModder(); // and adds listeners
+            }
+
+            mSketchModder.setVisible(true); // hopefull this one is not blocking.
+        
         }
-        
-        mSketchModder.setVisible(true); // hopefull this one is not blocking.
-        
-        
+        catch( ServiceLocator.ServiceLocatorException ex){
+            JOptionPane.showMessageDialog(mEditor, "When loading sketch modder, we got the following error: " + ex.getMessage());
+        }
     }
     
 
 
     @Override
     public String getMenuTitle() {
-        return "== tweet2sketch tool ==";
+        return "Tweet-A-Sketch";
     }
     
     
@@ -101,7 +118,7 @@ implements Tool
      * 
      * @return 
      */
-    private ISketchModder initModder() {
+    private ISketchModder initModder() throws ServiceLocator.ServiceLocatorException {
         
           ISketchModder  sketchModder = (ISketchModder) ServiceLocator.getSerivce(ServiceLocator.SVC_BASIC_SKETCH_MODDER);
            
@@ -109,6 +126,14 @@ implements Tool
           
           sketchModder.setSourceCodeFormatter(mEditor.createFormatter());
           return sketchModder;
+    }
+
+    /**
+     * Helper method prints current sketch folder
+     */
+    private void printSketchFolder() {
+        File sketchFolder = sketch.getFolder();
+        System.out.println("++++++++++sketch folder: [" + sketchFolder.getAbsolutePath() + "]");
     }
     
     
@@ -120,7 +145,7 @@ implements Tool
         @Override
         public void onModderAction(ISketchModder modder, ModderAction action) {
             int actType = action.getActionType();
-            AbstractTweet tweet = action.getTweet();
+            final AbstractTweet tweet = action.getTweet();
             String tweetText;
             switch ( actType ){
                 case ACTION_CODE_EDITOR_INSERT_INTO:
@@ -133,11 +158,32 @@ implements Tool
                     
                     mEditor.setText(action.getSourceCode());      // this will return formatted source code.
                                                                  // as this seems to be paramter for this action.
-                    
+                    File saveFrameFile = new File(mEditor.getSketch().getFolder(), "my_save_frame.pde");
+                    try {
+                        Base.saveFile(action.getSourceCode(), saveFrameFile);
+                        mEditor.getSketch().addFile(saveFrameFile);
+                    } catch (IOException ex) {
+                        Logger.getLogger(Tweet2Sketch.class.getName()).log(Level.SEVERE, null, ex);
+                        JOptionPane.showMessageDialog(mEditor, ex.getMessage());
+                    }
                     break;
                 case ACTION_MODDER_REQUESTS_CODE:
-                    mSketchModder.sendSketchCode(mEditor.getText(), tweet);
-                    JOptionPane.showMessageDialog(mEditor, "Just sent code from PDE current window into tweetUI.");                    
+                    // show modal dialog for choosing the image.
+                            // this should be run on EDT thread.
+                                Runnable onImageSelect = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if ( ! SwingUtilities.isEventDispatchThread() ){
+                                            throw new RuntimeException("This runnble must be called on EDT");
+                                        }
+                                        mSketchModder.sendSketchCode(mEditor.getText(), tweet);
+                                        JOptionPane.showMessageDialog(mEditor, "Just sent code from PDE current window into tweetUI.");                    
+                                    }
+                                };
+                    IconDemoApp iconFrame = new IconDemoApp(mEditor.getSketch().getFolder(),
+                                                                        onImageSelect);
+                    
+                    iconFrame.setVisible(true); // ? i wonder if this one is blocking or not? // probably not.
                     break;
                 
             }
