@@ -219,7 +219,7 @@ implements IQueueAccessPoint,
                                                         // not obligatory blocking queue
     {
          Query query = new Query(theQuery);
-         query.setResultType(Query.MIXED);
+         query.setResultType(Query.RECENT);
 //         query.setResultType(Query.POPULAR);
          query.setCount(C_TWEET_SEARCH_RESULT_COUNT);
          
