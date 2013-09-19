@@ -3,6 +3,8 @@ package firsttool;
 import firsttool.tweetqueue.TweetFetchThread;
 import firsttool.ui.IBasicPassiveUI;
 import firsttool.ui.TweetBasicUI;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This is service locator class. As described in 
@@ -47,7 +49,7 @@ public class ServiceLocator {
      *                  starting with SVC_
      * @return 
      */
-    static public ServiceRecord getSerivce(String serviceName){
+    static public ServiceRecord getSerivce(String serviceName) throws ServiceLocatorException{
         if ( serviceName.equals(SVC_LIVE_TWEET_QUEUE)){
             if ( smFetchThread == null ){
                 smFetchThread = new TweetFetchThread();    
@@ -79,8 +81,13 @@ public class ServiceLocator {
     /**
      * Encapsulates initialization of the EasyFrame
      */
-    private static SketchModder initializeEasyFrame() {
-        return new SketchModder();
+    private static SketchModder initializeEasyFrame() throws ServiceLocatorException {
+        try {
+            return new SketchModder();
+        } catch (ISketchModder.ModderEx ex) {
+            Logger.getLogger(ServiceLocator.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ServiceLocatorException(ex);
+        }
     }
 
     
@@ -94,6 +101,18 @@ public class ServiceLocator {
 
     private static IBasicPassiveUI initializeBasicPassiveUI() {
         return new TweetBasicUI();
+    }
+
+    public static class ServiceLocatorException extends Exception {
+
+        public ServiceLocatorException(String message) {
+            super(message);
+        }
+
+        public ServiceLocatorException(Throwable cause) {
+            super(cause);
+        }
+        
     }
             
             
@@ -115,28 +134,32 @@ public class ServiceLocator {
      */
     public static void main(String[] args) {
         String[] serviceNames = ServiceLocator.getAvailableServiceNames();
-        
+
         // just list service names.
-        for(String svc : serviceNames){
-            System.out.println("Found service: [" +  svc + "]");
+        for (String svc : serviceNames) {
+            System.out.println("Found service: [" + svc + "]");
         }
 
         // now let's try to isntantiate them and get description
-        for(String svc : serviceNames){
+        for (String svc : serviceNames) {
             System.out.println("Instantiating service: " + svc + " ...");
-            
-            ServiceRecord sinstance = ServiceLocator.getSerivce(svc);
-            
-            
-            System.out.println("Found service: [" +  svc + "] with description: " + sinstance.getServiceDescription());
-            
-            if ( sinstance instanceof ISketchModder ){
-                SketchModder frm = (SketchModder) sinstance;
-                frm.setVisible(true);
+
+            ServiceRecord sinstance;
+            try {
+                sinstance = ServiceLocator.getSerivce(svc);
+
+                System.out.println("Found service: [" + svc + "] with description: " + sinstance.getServiceDescription());
+
+                if (sinstance instanceof ISketchModder) {
+                    SketchModder frm = (SketchModder) sinstance;
+                    frm.setVisible(true);
+                }
+            } catch (ServiceLocatorException ex) {
+                Logger.getLogger(ServiceLocator.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
         }
-        
+
         
          
     }
