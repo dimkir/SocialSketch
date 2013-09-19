@@ -5,8 +5,6 @@ package firsttool.tweetqueue;
 // in future this should NOT be anything from Swing. but either more abstract
 // "java.awt.Image" or maybe even just stream of bytes. Because I want (at least 
 // as far as I can, keep AbstractTweet as "platform-independent" as possible.
-import java.net.URL;
-import javax.swing.ImageIcon;
 import twitter4j.Status;
 
 /**
@@ -126,6 +124,11 @@ public class AbstractTweet {
 
     public long getTweetIdLong() {
         return mOriginalTweet.getId();
+    }
+
+    public String getUserWithoutAt() {
+        // TODO: implement getUserWithoutAt
+        return mOriginalTweet.getUser().getScreenName();
     }
     
     
