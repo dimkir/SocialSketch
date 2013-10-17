@@ -1,28 +1,33 @@
 package components;
 
+import components.ImageFileLoadWorker.ImageEnvelope;
 import java.io.File;
 import java.io.FileFilter;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.SwingWorker;
 
 /**
  * This class is a implementation of separate SwingWorker thread which is tasked
- * with scanning the given directory for image files and plugging them into 
- * given IconDemoApp (JFrame) as JButtons (? with appropriate actions? which actions?)
- * With ThumbnailActions.
+ * with scanning the given directory for image files, loading them to memory,
+ * creating thumbnails, wrapping them into "envelopes" and supplying those envelopes
+ * to the IImageEnvelopeReceiver callback on EDT thread.
  * 
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
-public class ImageFileLoadWorker extends SwingWorker<Void, ThumbnailAction> {
+//TODO: single responsibility of this class should be just loading and converting images.
+// no Thumbnail Action creation should be. This Thumbnail action should be the responsibility of 
+// the IconDemoApp as it is intrinsic to him.
+public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
 
-    private File mDir;
-    private final IconDemoApp mParentApp;
+    private final File mDir;
+//    private final IconDemoApp mParentApp;
+    
+    private final IImageEnvelopeReceiver mImageEnvelopeReceiver;
     
     private static final int C_ICON_WIDTH = 128;
     private static final int C_ICON_HEIGHT = 128;
@@ -30,16 +35,32 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ThumbnailAction> {
     private MissingIcon placeholderIcon = new MissingIcon();
 
     /**
-     * Just initializes the IFLWorker with paraemters, BUT DOES NOT start it.
+     * Just initializes the IFLWorker with parameters, BUT DOES NOT start it.
      * 
-     * @param dirWithImages
-     * @param parentApp 
+     * @param dirWithImages ?? this parameter may be failable. NOT NULL.
+     *                      As directory may be on network drive or some other "slow response" storage,
+     *                      we don't check it's validity/availability in constructor. 
+     *                      This will be done in the thread. 
+     *                      However we DO want to be sure that this parameter is not null, as this signifies
+     *                      bug in code, as rather unavailable storage.
+     * @param imageEnvelopeReceiver NOT NULL. Reference to the receiver of the envelopes. Will be run on EDT thread.
+     * 
+     * @throws IllegalArgumentException if dirWithImages is NULL or if imageEnvelopReceiver is null.
      */
-    //TODO: what if directory is non-existent? or parentApp is NULL?
-    ImageFileLoadWorker(File dirWithImages, IconDemoApp parentApp) 
+    ImageFileLoadWorker(File dirWithImages, IImageEnvelopeReceiver imageEnvelopeReceiver) 
     {
+        if ( imageEnvelopeReceiver == null ){
+            throw new IllegalArgumentException("imageEnvelopeReceiver parameter cannot be NULL. " + 
+                     "Because if null, then there's no point for the worker to work. "+ 
+                    "As processed images won't be passed to anywhere");            
+        }
+        mImageEnvelopeReceiver = imageEnvelopeReceiver;
+        
+        if ( dirWithImages == null ){
+            throw new IllegalArgumentException("dirWithImages parameter cannot be NULL");
+        }
+        
         mDir = dirWithImages;
-        mParentApp = parentApp;
     }
 
     
@@ -71,13 +92,14 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ThumbnailAction> {
                 continue;
             }
 
-            ThumbnailAction thumbAction = creatActionFromIcon(icon);
-
-            publish(thumbAction);
+//            ThumbnailAction thumbAction = creatActionFromIcon(icon);
+//            publish(thumbAction);
             
+            ImageEnvelope envelope = makeImageEnvelopeFrom(icon);
+            publish(envelope);
         }
         // unfortunately we must return something, and only null is valid to
-        // return when the return type is void.
+        // return when the return type is Void.
         return null;
     }    
 //    /**
@@ -99,42 +121,58 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ThumbnailAction> {
 //        return null;
 //    }
 
+//    /**
+//     * Process all loaded images.
+//     * 
+//     * Looks like after "publishing" all of other things, this method will be called
+//     * on Swing Thread to process all the actions.
+//     */
+//    @Override
+//    protected void process(List<ThumbnailAction> chunks) {
+//        for (ThumbnailAction thumbAction : chunks) {
+//            JButton thumbButton = new JButton(thumbAction);
+//            // add the new button BEFORE the last glue
+//            // this centers the buttons in the toolbar
+//            mParentApp.addThumbButton(thumbButton);
+//            
+//        }
+//    }
+    
     /**
      * Process all loaded images.
+     * 
+     * Looks like after "publishing" all of other things, this method will be called
+     * on Swing Thread to process all the actions.
      */
     @Override
-    protected void process(List<ThumbnailAction> chunks) {
-        for (ThumbnailAction thumbAction : chunks) {
-            JButton thumbButton = new JButton(thumbAction);
-            // add the new button BEFORE the last glue
-            // this centers the buttons in the toolbar
-            mParentApp.addThumbButton(thumbButton);
-            
+    protected void process(List<ImageEnvelope> chunks) {
+        for (ImageEnvelope imageEnvelope : chunks) {
+                mImageEnvelopeReceiver.submitImageEnvelope(imageEnvelope);
         }
-    }
-
+    }    
+   
     /**
-     * Creates new instance of ThumbnailAction and fills it with the 
-     * given image and image thumbnail.
+     * Helper: Creates "envelope" containing results of the threads, work
+     * eg: loaded and resized images.
      * 
      * @param icon
      * @return 
      */
-    private ThumbnailAction creatActionFromIcon(ImageIcon icon) {
-        ThumbnailAction thumbAction;
+    private ImageEnvelope makeImageEnvelopeFrom(ImageIcon icon) {
+        ImageEnvelope envelope;
         if (icon != null) {
 
             ImageIcon thumbnailIcon = new ImageIcon(GraphicsUtils.getScaledImage(icon.getImage(), C_ICON_WIDTH, C_ICON_HEIGHT));
 
-            thumbAction = new ThumbnailAction(icon, thumbnailIcon, "some caption blah blahb blah", mParentApp);
+            envelope = new ImageEnvelope(icon, thumbnailIcon, "come caption blah blahb blah");
 
         } else {
             // the image failed to load for some reason
             // so load a placeholder instead
-            thumbAction = new ThumbnailAction(placeholderIcon, placeholderIcon, "some caption... bla blah", mParentApp);
+            envelope = new ImageEnvelope(placeholderIcon, placeholderIcon, "some caption... bla blah");
         }
-        return thumbAction;
-    }
+        return envelope;
+    }    
 
     /**
      * Attempts to create ImageIcon from file. Failable. Returns null on error.
@@ -160,6 +198,34 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ThumbnailAction> {
         } catch (MalformedURLException ex) {
             Logger.getLogger(ImageFileLoadWorker.class.getName()).log(Level.SEVERE, null, ex);
             return null;
+        }
+    }
+
+    /**
+     * Container for the processed set of single image file. 
+     * (Container for image and generated thumbnail and short string of description).
+     */
+    public static class ImageEnvelope {
+
+        private final Icon mMainImage;
+        private final Icon mThumbnail;
+        private final String mDescription;
+        
+        private ImageEnvelope(Icon mainImageIcon, Icon thumbnailIcon, String descr) {
+            mMainImage = mainImageIcon;
+            mThumbnail= thumbnailIcon;
+            mDescription = descr;
+        }
+        Icon getMainImage(){
+            return mMainImage;
+        }
+
+        Icon getThumbnailImage() {
+            return mThumbnail;
+        }
+
+        String getDescription() {
+            return mDescription;
         }
     }
 }

@@ -323,9 +323,32 @@ public class IconDemoApp extends JFrame {
         buttonBar.add(okButton, buttonBar.getComponentCount() - 1);
     }
 
+    /**
+     * Sets up SwingWorker thread, which will scan directory for images,
+     * and feed them back into this JFrame on EDT thread.
+     * 
+     * @param directoryWithImages 
+     */
     private void setupThreads(File directoryWithImages) {
         // loadimages.execute();
-        loadImagesFromDirectory = new ImageFileLoadWorker(directoryWithImages, this);
+        IImageEnvelopeReceiver imageEnvelopeReceiver = new IImageEnvelopeReceiver() {
+
+            /**
+             * Receives envelope with images. Creates Thumbnail actions and creates buttons
+             * and adds them to the JFrame.
+             */
+            @Override
+            public void submitImageEnvelope(ImageFileLoadWorker.ImageEnvelope imageEnvelope) {
+                ThumbnailAction thAction = new ThumbnailAction(imageEnvelope.getMainImage(), 
+                                                               imageEnvelope.getThumbnailImage(), 
+                                                               imageEnvelope.getDescription(), 
+                                                               IconDemoApp.this);
+                JButton thButton = new JButton(thAction);
+                //thButton.setAction(thAction);
+                addThumbButton(thButton);
+            }
+        };
+        loadImagesFromDirectory = new ImageFileLoadWorker(directoryWithImages, imageEnvelopeReceiver);
         loadImagesFromDirectory.execute();    
     }
 
