@@ -115,20 +115,28 @@ public class IconDemoApp extends JFrame {
                         JOptionPane.showMessageDialog(null, "This is shown after frame is closed");
                     }
                 });
-                app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+                //app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
                 app.setVisible(true);
             }
         });
     }
     
-    
+    /**
+     * Makes given image be displayed in the central view of the frame.
+     * @param icon 
+     */
     public void setCenterImage(Icon icon){
         photographLabel.setIcon(icon);
     }
     
+    /**
+     * This is constructor which uses "the evolvable" param SSDialogParams
+     * to pass initialization params.
+     * @param params 
+     */
     public IconDemoApp(SSDialogParams params){
             initFrame();
-            setupButton(params.getListenerToRunafterClickOkOnEDT());
+            initOkButton(params.getListenerToRunafterClickOkOnEDT());
             setupThreads(params.getDirectoryWithImages());
     }
     
@@ -151,7 +159,7 @@ public class IconDemoApp extends JFrame {
         // start the image loading SwingWorker in a background thread
         
         // this is "OK" button which basically picks image and closes window.
-        setupButton(listenerToRunafterClickOkOnEDT);
+        initOkButton(listenerToRunafterClickOkOnEDT);
         
         setupThreads(directoryWithImages);
     }
@@ -246,7 +254,10 @@ public class IconDemoApp extends JFrame {
      * Inits components of the frame and position
      */
     private void initFrame() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // when other swing frame is creating this frame.
+                                                        // what should be the operation? 
+                                                        // namely if I hide? then it's there?
+                                                        // if I dispose: the caller will still have reference to me?
         setTitle("Icon Demo: Please Select an Image");
         
         // A label for displaying the pictures
@@ -280,7 +291,13 @@ public class IconDemoApp extends JFrame {
         buttonBar.add(thumbButton, buttonBar.getComponentCount() - 1);        
     }
 
-    private void setupButton(final Runnable listenerToRunafterClickOkOnEDT) {
+    /**
+     * Inits button (which user clicks when he had selected the picture).
+     * 
+     * @param listenerToRunafterClickOkOnEDT This callback will be run on EDT. this the callback which will be 
+     *        called to inform observers that user has selected the frame.
+     */
+    private void initOkButton(final Runnable listenerToRunafterClickOkOnEDT) {
         JButton okButton = new JButton("OK I HAVE SELECTED");
         okButton.addActionListener(new ActionListener() {
 
@@ -289,7 +306,9 @@ public class IconDemoApp extends JFrame {
                 // TODO: add code for whether anythign was picked.
                 IconDemoApp.this.setVisible(false);
                 listenerToRunafterClickOkOnEDT.run();
-                //IconDemoApp.this.
+                
+                // After button is clicked, we want the default window close operation to be executed,
+                // thus we "simulate" click on the [X] window close button.
                 IconDemoApp.this.dispatchEvent(new WindowEvent(IconDemoApp.this, WindowEvent.WINDOW_CLOSING));
             }
         });
