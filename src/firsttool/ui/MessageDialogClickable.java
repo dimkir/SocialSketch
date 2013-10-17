@@ -29,19 +29,31 @@ import javax.swing.event.HyperlinkListener;
 public class MessageDialogClickable {
 
     public static void main(String[] args) {
-        show(null, "This is link you can click:", "http://www.google.com"); // why throwable?
+        show(null, "This is link you can click:", "http://www.google.com"); 
+        show(null, "This is link you can click:", "http://www.google.com", "This is another link:" , "http://twitter.com"); 
     }
     
+    /**
+     * Shows message dialog with one message and one link.
+     * 
+     * @param parent
+     * @param message
+     * @param url 
+     */
+    public static void show(JFrame parent, String message, String url){
+        show(parent, message, url, null, null); // only to show 1 message and 1 link.
+    }
     
     /**
-     * Shows the dialog with provided link
+     * Shows the dialog with provided messages and links. (Up to two).
 
      * @param parent    CAN be NULL.
      * @param message   NOT NULL
      * @param url       CAN be NULL ( then will display no link) or URL WITH PROTOCOL! (eg. "http://www.google.com")
-     * @throws Throwable ??? why 
+     * @param secondMessage  CAN BE NULL
+     * @param secondUrl      CAN BE NULL. Only is used if the secondMessage is not null.
      */
-    public static void show(JFrame parent, String message, String url)
+    public static void show(JFrame parent, String message, String url, String secondMessage, String secondUrl)
     {
         // for copying style
         JLabel label = new JLabel();
@@ -59,6 +71,16 @@ public class MessageDialogClickable {
         if ( url != null ){
             html.append("<a href=\""+ url +"\">" + url + "</a>");
         }
+        
+        if ( secondMessage != null ){
+            html.append("<p>");
+            html.append(secondMessage  + " "); // space to separate link from main message
+            if ( secondUrl != null ){
+                html.append("<a href=\""+ secondUrl +"\">" + secondUrl + "</a>");
+            }
+            html.append("</p>");
+        }
+        
         html.append("</body></html>");
 
         JEditorPane ep = new JEditorPane("text/html", html.toString());
