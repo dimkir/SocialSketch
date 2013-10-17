@@ -1,18 +1,21 @@
 package firsttool.tweetposter;
 
 import firsttool.tweetqueue.AbstractTweet;
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.URLEntity;
 import twitter4j.conf.ConfigurationBuilder;
 
     
     
-    /**
+/**
  * Provides API to post to twitter. 
  * 
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
@@ -49,11 +52,12 @@ public class TweetPoster {
      * 
      * 
      * @param tweetText
-     * @param aTweet object representing tweet to be replied to.
+     * @param mediaFile CAN BE NULL, or link to the file which should be posted as tweet media.
+     * @param aTweet object representing tweet to be replied to. CAN BE NULL, in case there's no reply to be made.
      * @param listener callback method to be called upon completion of posting.
      *          This should be called on the same thread as it was called from(in our case EDT?)
      */
-    public void postTweetReply(String tweetText, AbstractTweet aTweet, final ITweetPostComplete listener) {
+    public void postTweetReply(String tweetText, File mediaFile, AbstractTweet aTweet, final ITweetPostComplete listener) {
         //TODO: implement this one
        // throw new UnsupportedOperationException("Not yet implemented");
         // this should be called on worker thread.
@@ -61,10 +65,11 @@ public class TweetPoster {
         //        if ( notInitialized() ){
 //            initialize();
 //        }
-        String user = aTweet.getUserWithoutAt();
         final StatusUpdate update;
-        if ( C_POST_TWEETS_AS_REPLIES ){
+        if ( C_POST_TWEETS_AS_REPLIES && aTweet != null){
+            String user = aTweet.getUserWithoutAt();
             update = new StatusUpdate("@" + user + " " + tweetText);
+           
             update.setInReplyToStatusId(aTweet.getTweetIdLong());
         }
         else{
@@ -74,12 +79,25 @@ public class TweetPoster {
             
         }
         
+        // attach media file
+        if ( mediaFile != null ){
+             update.setMedia(mediaFile);
+        }
+        
         Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
                     Status updatedStatus = twitter.updateStatus(update);
+                    
+                    // debug print entities in the posted tweet.
+                            URLEntity[] urlEntities = updatedStatus.getURLEntities();
+                            printUrlEntities(urlEntities);
+
+                            MediaEntity[] mediaEntities = updatedStatus.getMediaEntities();
+                            printMediaEntities(mediaEntities);
+                    
                     listener.onTweetPostComplete(new TweetPostCompleteEvent(updatedStatus));
                     
                 } catch (TwitterException ex) {
@@ -88,12 +106,43 @@ public class TweetPoster {
                 }
 
             }
+
+
         });
         
         t.start();
         
     }
-/**
+    
+    /**
+     * Just helper method to print url entities.
+     *
+     * @param urlEntities can be NULL if no entities available.
+     *
+     */
+    private void printUrlEntities(URLEntity[] urlEntities) {
+        if (urlEntities == null) {
+            System.out.println("$$$$ URL Entities are NULL empty");
+            return;
+        }
+
+        for (URLEntity ue : urlEntities) {
+            System.out.println("$$$$ URL Entity: " + ue.getURL());
+        }
+    }
+
+    private void printMediaEntities(MediaEntity[] mediaEntities) {
+        if (mediaEntities == null) {
+            System.out.println("$$$$ MEDIA Entities are NULL empty");
+            return;
+        }
+
+        for (MediaEntity medent : mediaEntities) {
+            System.out.println("$$$$ Media Entity: " + medent.getMediaURL());
+        }
+    }
+            
+    /**
      * 
      * @param xmlPathfile
      * @return 
