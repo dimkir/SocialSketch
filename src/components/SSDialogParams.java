@@ -33,8 +33,9 @@ public class SSDialogParams {
     }
     
     
-    public void setListenerToRunafterClickOkOnEDT(Runnable r){
+    public SSDialogParams setListenerToRunafterClickOkOnEDT(Runnable r){
         onImagePickComplete = r;
+        return this;
     }
 
     Runnable getListenerToRunafterClickOkOnEDT() {
@@ -42,16 +43,18 @@ public class SSDialogParams {
     }
 
     
-    public void setDirectoryWithImages(File dir){
+    public SSDialogParams setDirectoryWithImages(File dir){
         mImageDir = dir;
+        return this;
     }
     
     File getDirectoryWithImages() {
         return mImageDir;
     }
 
-    public void setParentFrame(JFrame frame){
-         mParentFrame = frame;
+    public SSDialogParams setParentFrame(JFrame frame){
+        mParentFrame = frame;
+        return this;
     }
     
     /**
