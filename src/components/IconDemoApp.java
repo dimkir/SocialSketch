@@ -49,7 +49,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import javax.swing.WindowConstants;
 
 /**
  * This application is intended to demonstrate the loading of image files into icons
@@ -135,7 +134,7 @@ public class IconDemoApp extends JFrame {
      * @param params 
      */
     public IconDemoApp(SSDialogParams params){
-            initFrame();
+            initFrame(params.getParentFrame());
             initOkButton(params.getListenerToRunafterClickOkOnEDT());
             setupThreads(params.getDirectoryWithImages());
     }
@@ -155,7 +154,7 @@ public class IconDemoApp extends JFrame {
      * @param listenerToRunafterClickOkOnEDT 
      */
     public IconDemoApp(File directoryWithImages, final Runnable listenerToRunafterClickOkOnEDT){
-        initFrame();
+        initFrame(null);
         // start the image loading SwingWorker in a background thread
         
         // this is "OK" button which basically picks image and closes window.
@@ -173,7 +172,7 @@ public class IconDemoApp extends JFrame {
      * Loads images from the package resources.
      */
     public IconDemoApp() {
-        initFrame();
+        initFrame(null);
         // start the image loading SwingWorker in a background thread
         loadimages.execute();
     }
@@ -252,8 +251,10 @@ public class IconDemoApp extends JFrame {
 
     /**
      * Inits components of the frame and position
+     * @param parentFrame CAN BE null or reference to the parent frame. Used incuim
+     *        only to position this frame neatly above the parent frame.
      */
-    private void initFrame() {
+    private void initFrame(JFrame parentFrame) {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // when other swing frame is creating this frame.
                                                         // what should be the operation? 
                                                         // namely if I hide? then it's there?
@@ -278,7 +279,7 @@ public class IconDemoApp extends JFrame {
         setSize(400, 300);
         
         // this centers the frame on the screen
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(parentFrame); // null is valid value.
                 
     }
 

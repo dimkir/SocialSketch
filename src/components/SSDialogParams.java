@@ -1,6 +1,7 @@
 package components;
 
 import java.io.File;
+import javax.swing.JFrame;
 
 /**
  * SketchShareDialog Parameters.
@@ -17,6 +18,7 @@ public class SSDialogParams {
     
     private Runnable onImagePickComplete;
     private File mImageDir;
+    private JFrame mParentFrame;
     
     
     /**
@@ -46,6 +48,21 @@ public class SSDialogParams {
     
     File getDirectoryWithImages() {
         return mImageDir;
+    }
+
+    public void setParentFrame(JFrame frame){
+         mParentFrame = frame;
+    }
+    
+    /**
+     * Returns parent frame. 
+     * This parent frame will be used mostly for positioning the IconDemo window neatly relative
+     * to the parent window.
+     * 
+     * @return  null or reference to parent frame.
+     */
+    JFrame getParentFrame() {
+        return mParentFrame;
     }
     
     
