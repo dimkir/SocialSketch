@@ -12,7 +12,11 @@ import javax.swing.JButton;
 import javax.swing.SwingWorker;
 
 /**
- *
+ * This class is a implementation of separate SwingWorker thread which is tasked
+ * with scanning the given directory for image files and plugging them into 
+ * given IconDemoApp (JFrame) as JButtons (? with appropriate actions? which actions?)
+ * With ThumbnailActions.
+ * 
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
 public class ImageFileLoadWorker extends SwingWorker<Void, ThumbnailAction> {
@@ -20,16 +24,28 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ThumbnailAction> {
     private File mDir;
     private final IconDemoApp mParentApp;
     
+    private static final int C_ICON_WIDTH = 128;
+    private static final int C_ICON_HEIGHT = 128;
+    
     private MissingIcon placeholderIcon = new MissingIcon();
 
-    ImageFileLoadWorker(File dirWithImages, IconDemoApp parentApp) {
+    /**
+     * Just initializes the IFLWorker with paraemters, BUT DOES NOT start it.
+     * 
+     * @param dirWithImages
+     * @param parentApp 
+     */
+    //TODO: what if directory is non-existent? or parentApp is NULL?
+    ImageFileLoadWorker(File dirWithImages, IconDemoApp parentApp) 
+    {
         mDir = dirWithImages;
         mParentApp = parentApp;
     }
 
     
     /**
-     * Creates full size and thumbnail versions of the target image files.
+     * Creates full size and thumbnail versions of the target image files
+     * on the worker thread and also plugs those images as "buttons" into the frame.
      */
     @Override
     protected Void doInBackground() throws Exception {
@@ -97,11 +113,18 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ThumbnailAction> {
         }
     }
 
+    /**
+     * Creates new instance of ThumbnailAction and fills it with the 
+     * given image and image thumbnail.
+     * 
+     * @param icon
+     * @return 
+     */
     private ThumbnailAction creatActionFromIcon(ImageIcon icon) {
         ThumbnailAction thumbAction;
         if (icon != null) {
 
-            ImageIcon thumbnailIcon = new ImageIcon(GraphicsUtils.getScaledImage(icon.getImage(), 32, 32));
+            ImageIcon thumbnailIcon = new ImageIcon(GraphicsUtils.getScaledImage(icon.getImage(), C_ICON_WIDTH, C_ICON_HEIGHT));
 
             thumbAction = new ThumbnailAction(icon, thumbnailIcon, "some caption blah blahb blah", mParentApp);
 

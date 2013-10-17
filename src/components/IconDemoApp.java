@@ -163,6 +163,13 @@ public class IconDemoApp extends JFrame {
         setupThreads(directoryWithImages);
     }
     
+    /**
+     * Constructs empty SSDialogParams instance. 
+     * 
+     * SSDialogParams is not supposed to be constructed from outside of the package,
+     * thus this method is a public access point to create an instance of the params.
+     * @return 
+     */
     public SSDialogParams spawnEmptyParameters(){
         return new SSDialogParams();
     }
@@ -319,7 +326,8 @@ public class IconDemoApp extends JFrame {
     private void setupThreads(File directoryWithImages) {
         // loadimages.execute();
         loadImagesFromDirectory = new ImageFileLoadWorker(directoryWithImages, this);
-        loadImagesFromDirectory.execute();    }
+        loadImagesFromDirectory.execute();    
+    }
 
     /**
      * Exception which is thrown by IconDemoApp
