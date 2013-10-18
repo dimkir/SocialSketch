@@ -1,3 +1,9 @@
+/**
+* This is automatically generated code. 
+* It is re-inserted into sketch every time code is inserted into PDE.
+* Purpose of this code is to implement functionality of saving screenshot
+* of running sketch on keyboard key release.
+*/
 @Override
 void keyReleased(KeyEvent evt){
    println("*******************keyEvent: " + evt.getAction() );
