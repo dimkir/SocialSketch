@@ -10,6 +10,11 @@ public class CodePostCompleteEvent {
     private final boolean mOperationSuccess;
     private final String mHtmlUrl;
     private final String mErrorMessage;
+    
+    /**
+     * Gist id, NULL if not avialable.
+     */
+    private String mGistId;
 
     /**
      * Creates event. If event successful the param0 is the success url.
@@ -41,6 +46,21 @@ public class CodePostCompleteEvent {
      */
     public boolean isSuccessful(){
         return mOperationSuccess;
+    }
+
+    /**
+     *  Sets gist ID.
+     */
+    void setGistId(String id) {
+        mGistId = id;
+    }
+    
+    /**
+     * Returns gist Id. (If set. )
+     * @return 
+     */
+    public String getGistId(){
+        return mGistId;
     }
     
     
