@@ -4,7 +4,6 @@ import firsttool.tweetqueue.AbstractTweet;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Image;
-import java.awt.MediaTracker;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,18 +14,33 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 /**
- * This component extends things. 
+ * This is implementation of "list element" or as in Android they say "list item"
+ * which can download icons by itself and set them.
+ * 
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
+
 public class TweetCellRender extends JLabel
 implements ListCellRenderer
 {
     private static final Color HIGHLIGHT_COLOR = new Color(0, 0, 128);
     private final LocalIconStore mIconStore;
-    private final JList mParentList;
     
-    public TweetCellRender(LocalIconStore iconStore, JList list) {
-        mParentList = list;
+    // TODO: this doesn't really have to be here, as into getListCellRendererComponent() 
+    // source JList will be passed.
+   // private final JList mParentList;
+
+    /**
+     * After downloading icon, it places it into icon store, to not download it repeatedly.
+     * 
+     * @param iconStore just container, where icons will be stored after download. 
+     *        So that they don't download.
+     *                  
+     * @param list ?? what is this parameter?. I guess it is not used, as we will be able to receive
+     *          the source JList anyways as parameter.
+     */
+    public TweetCellRender(LocalIconStore iconStore) {
+     //   mParentList = list;
         mIconStore = iconStore;
         setOpaque(true);
         setIconTextGap(12);        
@@ -52,17 +66,18 @@ implements ListCellRenderer
             setText("<HTML>" + index + "::" + entry.getText() + "</HTML>");
 
             // try to fetch an icon
-            ImageIcon iicon =  mIconStore.getIconForUrl(entry.getIconUrlString());
+            ImageIcon iicon =  getIconFromIconStoreIfStoreIsAvailable(entry.getIconUrlString());
             
             if ( iicon != null) { // we have icon available for this tweet already.
                 setIcon(iicon);
             }
             else{
                 // trigger download of the icon.
-                startIconDownload(entry.getIconUrlString(), mIconStore, this, mParentList);
+//                startIconDownload(entry.getIconUrlString(), mIconStore, this, mParentList);
+                startIconDownload(entry.getIconUrlString(), mIconStore, this, list);
                 
                 // set default icon from iconStore
-                setIcon(mIconStore.getDefaultIcon());
+                setIcon(getDefaultIconFromIconStoreIfStoreIsAvailable());
             }
          }
          else{
@@ -88,7 +103,7 @@ implements ListCellRenderer
      * 
      * @param iconUrlString 
      */
-    private static void startIconDownload(final String iconUrlString, final LocalIconStore iconStore, final JLabel cell, final JList parentList) {
+    private void startIconDownload(final String iconUrlString, final LocalIconStore iconStore, final JLabel cell, final JList parentList) {
 
         final SwingWorker worker = new SwingWorker<ImageIcon, Void>() {
 
@@ -129,18 +144,21 @@ implements ListCellRenderer
             protected void done() {
                 try {
                     ImageIcon imageIcon = get();
+                    // I add the 
+                    String msg = String.format("TweetCellRender: after background download of the Icon at url [%s], the icon status is : %s",
+                                iconUrlString, ( imageIcon == null ? "invalid(null)" : "valid(successdowloading)"));
+                    System.out.println("TweetCellRender: after background download of the Icon ");
+                    // TODO: looksl like this can be NULL, in case download of the icon 
+                    //       crashed with an exception
                     
-                    iconStore.addImageIcon(iconUrlString, imageIcon);
+                    addToIconStore(iconUrlString, imageIcon);
+                    
                     // TODO: need to check if this cell still holds the tweet which I was
                     //         downloading the picture for.
     //                    if (THIS_TWEET_IS_STILL_IN_THE_LIST) {
                             cell.setIcon(imageIcon);
                             //cell.invalidate();
-                            parentList.invalidate();
-                            parentList.setFixedCellHeight(0);
-                            parentList.setFixedCellWidth(0);
-                            parentList.setFixedCellHeight(-1);
-                            parentList.setFixedCellWidth(-1);                            
+                            forceJListToRevalidate(parentList);
     //                    }
                 } catch (InterruptedException ex) {
                     Logger.getLogger(TweetCellRender.class.getName()).log(Level.SEVERE, null, ex);
@@ -149,12 +167,91 @@ implements ListCellRenderer
                 }
             }
 
+
+
         };
         worker.execute();
     }
     
+    /**
+     * Just a dirty hack to "revalidate" the JList.
+     *
+     * Look like simply calling to JList.invalidate() doesn't really do the job.
+     */
+    private static void forceJListToRevalidate(JList parentList) {
+        parentList.invalidate();
+        parentList.setFixedCellHeight(0);
+        parentList.setFixedCellWidth(0);
+        parentList.setFixedCellHeight(-1);
+        parentList.setFixedCellWidth(-1);
+    }
     
+    /**
+     * Helper which adds icon to icon store if the icon store is available. 
+     * If icon store is null, then prints warning.
+     * @param iconUrlString
+     * @param imageIcon 
+     */
+    private void addToIconStore(String iconUrlString, ImageIcon imageIcon) {
+        if ( mIconStore == null ){
+            String msg = String.format("TweetCellRender: Warning: Cannot add icon [%s] to iconstore, as iconstore is NULL", iconUrlString);
+        }
+        else{
+            mIconStore.addImageIcon(iconUrlString, imageIcon);
+        }
+    }
 
+    
+    
+    /**
+     * Example of how this renderer may be used.
+     * @param args 
+     */
+    public static void main(String[] args) {
         
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                 createAndShowGui();
+            }
+
+        });
+    }
+    
+    private static void createAndShowGui() {
+        TweetCellRenderFrameTest frame = new TweetCellRenderFrameTest(new TweetCellRender(null));
+        frame.setVisible(true);
+    }
+
+    /**
+     * Helper/gate: returns icon from icon store, if icon store instance is available.
+     * If icon store is not available, then return null.
+     * @param iconUrlString
+     * @return NULL in case icon store is not available, or this icon is not available inside of the icon store.
+     *          Icon reference in case this icon was available in the icon store.
+     */
+    private ImageIcon getIconFromIconStoreIfStoreIsAvailable(String iconUrlString) {
+        if ( mIconStore != null ){
+            return mIconStore.getIconForUrl(iconUrlString);        
+        }
+        else{
+            return null;
+        }
+           
+    }
+
+    /**
+     * Returns default icon from the store, if the store is available.
+     * @return NULL if no icon store is available.
+     */
+    private Icon getDefaultIconFromIconStoreIfStoreIsAvailable() {
+        if ( mIconStore == null ){
+            return null;
+        }
+        else{
+             return mIconStore.getDefaultIcon();
+        }
+    }
+
     
 }

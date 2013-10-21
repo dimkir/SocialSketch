@@ -53,7 +53,7 @@ implements IBasicPassiveUI, ServiceLocator.ServiceRecord
         setListModel(listModel);        
         
         
-        jList1.setCellRenderer(new TweetCellRender(mIconStore, jList1));
+        jList1.setCellRenderer(new TweetCellRender(mIconStore));
         
         
         jList1.addMouseListener(new MouseAdapter() {
