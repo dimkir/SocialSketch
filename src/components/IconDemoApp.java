@@ -35,6 +35,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.List;
 
@@ -105,6 +106,12 @@ public class IconDemoApp extends JFrame {
         
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+                 createGUI2();
+            }
+        });
+    }
+    
+    private static void createGUI1(){
                 String C_DIR_WITH_IMAGES = "c:\\Users\\Ernesto Guevara\\Desktop\\processing\\assets\\images\\bird\\";
                 
                 File dirWithImages = new File(C_DIR_WITH_IMAGES);
@@ -115,10 +122,40 @@ public class IconDemoApp extends JFrame {
                     }
                 });
                 //app.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                app.setVisible(true);
-            }
-        });
+                app.setVisible(true);        
     }
+
+    /**
+     * Creates IconDemoApp frame via constructor which takes SSDialogParams.
+     */
+    private static void createGUI2(){
+                String C_DIR_WITH_IMAGES = "c:\\Users\\Ernesto Guevara\\Desktop\\processing\\assets\\images\\bird\\";
+                File dirWithImages = new File(C_DIR_WITH_IMAGES);
+                
+                AdvancedCallback callback = new AdvancedCallback() {
+
+                    @Override
+                    public void onFinishedSelection(AdvancedCallback.FinishedSelectionEvent evt) {
+                        String msg = "No item selected. Selection cancelled.";
+                        if ( evt.hasSelected() ){
+                            msg = "Selected image: " + evt.getSelectedImagePath();
+                        }
+                        JOptionPane.showMessageDialog(null, msg);
+                    }
+                };
+                
+                SSDialogParams ssparam = IconDemoApp.spawnEmptyParameters()
+                                        .setDirectoryWithImages(dirWithImages)
+                                        .setAdvancedCallback(callback)
+                                        .setParentFrame(null);
+                
+                IconDemoApp app = new IconDemoApp(ssparam);
+                
+                
+                app.setVisible(true);        
+    }
+    private File mOriginPath;
+    private final AdvancedCallback mAdvancedCallback;
     
     /**
      * Makes given image be displayed in the central view of the frame.
@@ -131,11 +168,15 @@ public class IconDemoApp extends JFrame {
     /**
      * This is constructor which uses "the evolvable" param SSDialogParams
      * to pass initialization params.
+     * 
+     * Also this constructor uses Advanced "onImagePicked" callback (with parameters, etc).
+     * 
      * @param params 
      */
     public IconDemoApp(SSDialogParams params){
             initFrame(params.getParentFrame());
-            initOkButton(params.getListenerToRunafterClickOkOnEDT());
+            initOkButtonAdvanced(params.getAdvancedCallback());
+            mAdvancedCallback = params.getAdvancedCallback();
             setupThreads(params.getDirectoryWithImages());
     }
     
@@ -147,13 +188,14 @@ public class IconDemoApp extends JFrame {
     
     /**
      * Main constructor, initializes image picking window with
-     * directory of images and with the "onPickListener".
+     * directory of images and with the callback "onPickListener"  implemented as regular Runnable()
      * 
      * 
      * @param directoryWithImages
      * @param listenerToRunafterClickOkOnEDT 
      */
     public IconDemoApp(File directoryWithImages, final Runnable listenerToRunafterClickOkOnEDT){
+        mAdvancedCallback = null;
         initFrame(null);
         // start the image loading SwingWorker in a background thread
         
@@ -170,7 +212,7 @@ public class IconDemoApp extends JFrame {
      * thus this method is a public access point to create an instance of the params.
      * @return 
      */
-    public SSDialogParams spawnEmptyParameters(){
+    public static SSDialogParams spawnEmptyParameters(){
         return new SSDialogParams();
     }
     
@@ -179,6 +221,7 @@ public class IconDemoApp extends JFrame {
      * Loads images from the package resources.
      */
     public IconDemoApp() {
+        mAdvancedCallback = null;
         initFrame(null);
         // start the image loading SwingWorker in a background thread
         loadimages.execute();
@@ -210,12 +253,12 @@ public class IconDemoApp extends JFrame {
                     
                     ImageIcon thumbnailIcon = new ImageIcon(GraphicsUtils.getScaledImage(icon.getImage(), 32, 32));
                     
-                    thumbAction = new ThumbnailAction(icon, thumbnailIcon, imageCaptions[i], components.IconDemoApp.this);
+                    thumbAction = new ThumbnailAction(icon, thumbnailIcon, imageCaptions[i], null, components.IconDemoApp.this);
                     
                 }else{
                     // the image failed to load for some reason
                     // so load a placeholder instead
-                    thumbAction = new ThumbnailAction(placeholderIcon, placeholderIcon, imageCaptions[i], components.IconDemoApp.this);
+                    thumbAction = new ThumbnailAction(placeholderIcon, placeholderIcon, imageCaptions[i],null, components.IconDemoApp.this);
                 }
                 publish(thumbAction);
             }
@@ -266,6 +309,9 @@ public class IconDemoApp extends JFrame {
                                                         // what should be the operation? 
                                                         // namely if I hide? then it's there?
                                                         // if I dispose: the caller will still have reference to me?
+        addWindowListener(new MyWindowListener());
+        
+        
         setTitle("Icon Demo: Please Select an Image");
         
         // A label for displaying the pictures
@@ -323,6 +369,32 @@ public class IconDemoApp extends JFrame {
         buttonBar.add(okButton, buttonBar.getComponentCount() - 1);
     }
 
+   
+    
+    
+    private void initOkButtonAdvanced(final AdvancedCallback advancedCallback) {
+       JButton okButton = new JButton("OK,,,, I HAVE SELECTED");
+        okButton.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+                // this happens when button is pressed.
+                // TODO: add code for whether anythign was picked.
+                IconDemoApp.this.setVisible(false);
+                advancedCallback.onFinishedSelection(new AdvancedCallback.FinishedSelectionEvent(mOriginPath));
+                
+                // After button is clicked, we want the default window close operation to be executed,
+                // thus we "simulate" click on the [X] window close button.
+               // IconDemoApp.this.dispatchEvent(new WindowEvent(IconDemoApp.this, WindowEvent.WINDOW_CLOSING));
+                IconDemoApp.this.dispose();
+            }
+        });
+        buttonBar.add(okButton, buttonBar.getComponentCount() - 1);
+    }
+
+     
+    
+    
+    
     /**
      * Sets up SwingWorker thread, which will scan directory for images,
      * and feed them back into this JFrame on EDT thread.
@@ -342,6 +414,7 @@ public class IconDemoApp extends JFrame {
                 ThumbnailAction thAction = new ThumbnailAction(imageEnvelope.getMainImage(), 
                                                                imageEnvelope.getThumbnailImage(), 
                                                                imageEnvelope.getDescription(), 
+                                                               imageEnvelope.getOriginPath(),
                                                                IconDemoApp.this);
                 JButton thButton = new JButton(thAction);
                 //thButton.setAction(thAction);
@@ -353,6 +426,16 @@ public class IconDemoApp extends JFrame {
     }
 
     /**
+     * Sets currently selected file origin path.
+     * 
+     * @param mOriginPath 
+     */
+    void setSelectedImageOriginPath(File originPath) {
+        mOriginPath = originPath;
+        System.out.println("Selected image origin path: " + mOriginPath.getAbsolutePath());
+    }
+
+   /**
      * Exception which is thrown by IconDemoApp
      */
     public static class IconDemoEx extends Exception {
@@ -365,5 +448,41 @@ public class IconDemoApp extends JFrame {
             super(cause);
         }
         
+    }
+
+    private class MyWindowListener implements WindowListener {
+
+        public MyWindowListener() {
+        }
+
+        @Override
+        public void windowOpened(WindowEvent e) {
+        }
+
+        @Override
+        public void windowClosing(WindowEvent e) {
+            // fire call back.
+            mAdvancedCallback.onFinishedSelection(new AdvancedCallback.FinishedSelectionEvent(null));
+        }
+
+        @Override
+        public void windowClosed(WindowEvent e) {
+        }
+
+        @Override
+        public void windowIconified(WindowEvent e) {
+        }
+
+        @Override
+        public void windowDeiconified(WindowEvent e) {
+        }
+
+        @Override
+        public void windowActivated(WindowEvent e) {
+        }
+
+        @Override
+        public void windowDeactivated(WindowEvent e) {
+        }
     }
 }
