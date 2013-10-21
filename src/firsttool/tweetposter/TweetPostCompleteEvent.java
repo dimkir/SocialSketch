@@ -1,5 +1,6 @@
 package firsttool.tweetposter;
 
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
@@ -12,22 +13,34 @@ public class TweetPostCompleteEvent {
     private String mTweetUrl;
     private boolean mSuccess;
     private TwitterException mException;
+    private final MediaEntity[] mediaEntities;
     
     
     
-    public TweetPostCompleteEvent(Status status) {
-         mTweetUrl = makeDirectUrl(status);
-         mSuccess= true;
+    public TweetPostCompleteEvent(Status updatedStatus) {
+        mTweetUrl = makeDirectUrl(updatedStatus);
+        mSuccess = true;
+        
+        mediaEntities = updatedStatus.getMediaEntities();
+        TPUtils.printMediaEntities(mediaEntities);
+        
     }
 
     public TweetPostCompleteEvent() {
         mSuccess = false;
+        mediaEntities = null;
     }
     
-    
-    
-    
-    
+    /**
+     * May return NULL in case there were NO image with the tweet.
+     * @return 
+     */
+    public String getImageUrl(){
+        if ( mediaEntities == null ){
+            return null;
+        }
+        return mediaEntities[0].getMediaURL();
+    }
     
     public boolean isSuccessful(){
         return mSuccess;
@@ -37,7 +50,7 @@ public class TweetPostCompleteEvent {
         
         return mTweetUrl;
     }
-
+    
     TweetPostCompleteEvent setException(TwitterException ex) {
         // TODO: implement setException
             mException = ex;
