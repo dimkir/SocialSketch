@@ -1,6 +1,7 @@
 package components;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
@@ -13,14 +14,20 @@ class ThumbnailAction extends AbstractAction {
      */
     private Icon displayPhoto;
     private final IconDemoApp mAppFrame;
+    
+    /**
+     * This is path of the original image.
+     */
+    private final File mOriginPath;
 
     /**
      * @param Icon - The full size photo to show in the button.
      * @param Icon - The thumbnail to show in the button.
      * @param String - The description of the icon.
      */
-    public ThumbnailAction(Icon photo, Icon thumb, String desc, final IconDemoApp mAppFrame) {
+    public ThumbnailAction(Icon photo, Icon thumb, String desc, File originPath,  final IconDemoApp mAppFrame) {
         this.mAppFrame = mAppFrame;
+        mOriginPath = originPath;
         displayPhoto = photo;
         // The short description becomes the tooltip of a button.
         putValue(SHORT_DESCRIPTION, desc);
@@ -36,6 +43,8 @@ class ThumbnailAction extends AbstractAction {
         mAppFrame.setCenterImage(displayPhoto);
         
         mAppFrame.setTitle("Icon Demo: " + getValue(SHORT_DESCRIPTION).toString());
+        
+        mAppFrame.setSelectedImageOriginPath(mOriginPath);
         //setTitle("Icon Demo: " + getValue(SHORT_DESCRIPTION).toString());
         // ^^^ ?? should this be referencing mAppFrame or not?
     }
