@@ -1,10 +1,17 @@
 package firsttool;
 
 import firsttool.tweetqueue.AbstractTweet;
+import java.io.File;
 import processing.app.Formatter;
 
 /**
- * This is interface for the UI containing tweets. 
+ * What is domain of ISketchModder? 
+ * it obviously can have some "sending" functions, as and as well
+ * some functions to share the sketches?
+ * 
+ * This is a unit which both contains UserInterface elements (in whatever form suitable), as well as is able 
+ * to accept command to share sketches online and update it's user interface accordingly. 
+ * 
  * This is interface through which UI is exposed to the Processing Tool.
  * 
  * This Interface should provide way for the ProcessingTool to work
@@ -24,32 +31,44 @@ public interface ISketchModder {
 //
 //    public void setOnFetchTweetFromPDESelectedListener(IOnTweetPickListener myFetchFromPDEListener);
 
-    public void sendSketchCode(String text, AbstractTweet aTweet);
+    /**
+     * What's the purpose of this command?
+     * We do two things: we submit for for sharing the code on twitter, but as well we want to 
+     * show user the progress of this share. 
+     * 
+     * Tell to modder to share sketch in reply to given AbstractTweet.
+     * Who sends what to whom?
+     * @param text
+     * @param mediaFile
+     * @param aTweet 
+     */
+    public void shareSketchCode(String sketchPDESource, File mediaFile,  AbstractTweet aTweet);
 
     /**
-     * Sets formatter so that Modder can format source code.
+     * Sets formatter so that Modder can format unformatted text strings into source code format
+     * required by the caller.
      * 
      * @param createFormatter 
      */
     public void setSourceCodeFormatter(Formatter createFormatter);
     
-    
-    /**
-     * This is happening when tweet was "selected". (Here I more mean abstract "selected" by user
-     * for some purpose. Not just "selected in menu". Maybe user picked it and clicked "insert" button or smth.
-     * 
-     * This interface is provided, to create a convenient 
-     * abstraction layer. The client of EasyFrame (can be any external class or superclass)
-     * just has to:
-     *  1) create instance of the EasyFrame 
-     *  2) subscribe to this event and he knows that: list of updated tweets will be
-     *      presented to user. And user can pick a tweet. (eg. can pick tweet to be inserted into PDE)
-     */
-    public interface IOnTweetPickListener{
-        void onTweetPickListener(AbstractTweet tweet, SketchModder easyFrame); 
-                                                  // TODO ^^^^^ this maybe later can be extracted
-                                                  //            to interface
-    }        
+// Doesn't seem to be used.    
+//    /**
+//     * This is happening when tweet was "selected". (Here I more mean abstract "selected" by user
+//     * for some purpose. Not just "selected in menu". Maybe user picked it and clicked "insert" button or smth.
+//     * 
+//     * This interface is provided, to create a convenient 
+//     * abstraction layer. The client of EasyFrame (can be any external class or superclass)
+//     * just has to:
+//     *  1) create instance of the EasyFrame 
+//     *  2) subscribe to this event and he knows that: list of updated tweets will be
+//     *      presented to user. And user can pick a tweet. (eg. can pick tweet to be inserted into PDE)
+//     */
+//    public interface IOnTweetPickListener{
+//        void onTweetPickListener(AbstractTweet tweet, SketchModder easyFrame); 
+//                                                  // TODO ^^^^^ this maybe later can be extracted
+//                                                  //            to interface
+//    }        
     
     public interface IOnModderActionListener
     {
