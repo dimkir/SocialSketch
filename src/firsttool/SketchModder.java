@@ -3,27 +3,39 @@ package firsttool;
 import firsttool.codeposter.CodePostCompleteEvent;
 import firsttool.codeposter.CodePoster;
 import firsttool.codeposter.ICodePostComplete;
+
 import firsttool.tweetposter.ITweetPostComplete;
 import firsttool.tweetposter.TweetPostCompleteEvent;
 import firsttool.tweetposter.TweetPoster;
+
 import firsttool.tweetqueue.AbstractTweet;
 import firsttool.tweetqueue.IQueueAccessPoint;
+
 import firsttool.ui.IBasicPassiveUI;
 import firsttool.ui.IBasicPassiveUI.BasicPassiveUIAction;
 import firsttool.ui.IBasicPassiveUI.IBasicUIActionListener;
+import firsttool.ui.MessageDialogClickable;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import java.io.File;
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
+
 import processing.app.Formatter;
 
 /**
+ * What is the purpose of this class?
+ * 
  * When using this frame, all of the "building of frame" is hidden
  * in the super class
  * this should be just "controller" for logic of the elements.
@@ -198,10 +210,18 @@ implements
         mModderActionListener = listener;
     }
 
+    /**
+     * This method is the "channel" through which SketchModder is receiving the sketch code 
+     * to share.
+     * 
+     * @param sketchPDESource
+     * @param mediaFile
+     * @param aTweet 
+     */
     @Override
-    public void sendSketchCode(String text, AbstractTweet aTweet) {
-        JOptionPane.showMessageDialog(ui.getJFrame(), "Modder received code: " + text) ;
-        sendCodeAsReply(text, aTweet);
+    public void shareSketchCode(String sketchPDESource, File mediaFile, AbstractTweet aTweet) {
+        JOptionPane.showMessageDialog(ui.getJFrame(), "Modder received code: " + sketchPDESource) ;
+        shareCodeAsReplyImpl(sketchPDESource, mediaFile, aTweet);
     }
 
     private void setupTweetFetching() throws ServiceLocator.ServiceLocatorException {
@@ -240,37 +260,43 @@ implements
 
     /**
      * Replies with code to given tweet.
-     * We reply in simple way: we just post code to some server and
-     * and we just post tweet with this code.
+     * We reply in simple way: 
+     * a) post code to github as gist
+     * b) if successful we tweet the link to the gist and screenshot of the image.
+     * c) if tweet is successful, then we can comment on gist with the link to the image, so that gist as well has screenshot.
      * 
      * @param text
      * @param aTweet 
      */
-    private void sendCodeAsReply(String text, final AbstractTweet aTweet) {
+    private void shareCodeAsReplyImpl(String text, final File mediaFile,  final AbstractTweet aTweet) {
         // post code to code server
         codePoster.postCode(text, new ICodePostComplete() {
 
-            /**
+            /** *****************************************************
              * This runs if post code is successful.
-             */
+             * 
+             * Which means we simply want to tweet it.
+             ********************************************************/
             @Override
-            public void onCodePostComplete(CodePostCompleteEvent evt) {
+            public void onCodePostComplete(final CodePostCompleteEvent cevt) {
 
-                if (evt.isSuccessful()) {
-                    String postedUrl = evt.getUrlString();
-                   tweetPoster.postTweetReply("I remixed your sketch void size #p5 " + postedUrl, aTweet, new ITweetPostComplete() {
+                if (cevt.isSuccessful()) {
+                    final String postedUrl = cevt.getUrlString();
+                   
+                   // postedUrl removed from string
+                   tweetPoster.postTweetReply("I remixed your sketch void setup size draw #p5 " + postedUrl , mediaFile, aTweet, new ITweetPostComplete() {
 
                         @Override
                         public void onTweetPostComplete(TweetPostCompleteEvent evt) {
                             if ( evt.isSuccessful() ){
-                                
-                                // technically we should maybe force-refresh the screen?
-                                // ??
-                                 JOptionPane.showMessageDialog(null, "<html><B>Succesfully replied<b> to the tweet with: <a href='" + evt.getTweetUrl() + "'>" +
-                                                    evt.getTweetUrl() + "</a></html>");
+
+                                 MessageDialogClickable.show(null, "Successfully replied to the tweet with", evt.getTweetUrl(), "The link to image is" , evt.getImageUrl());
+
+                                 String commentMsg = String.format("This is comment with sketch screenshot url:  ![imge](%s)", evt.getImageUrl());
+                                 codePoster.postComment(commentMsg, cevt.getGistId(), mCommentPostComplete);
                             }
                             else{
-                                JOptionPane.showMessageDialog(null, "Cannot post tweet to internet, error: " + evt.getException().getMessage());
+                                JOptionPane.showMessageDialog(null, "We managed to share gist, but cannot tweet it. Error: " + evt.getException().getMessage());
                                         
                             }
                         }
@@ -287,6 +313,88 @@ implements
         
     }
 
+    /**
+     * This callback is called when completed attempt to comment on gist with the image from tweet.
+     */
+    private ICodePostComplete mCommentPostComplete = new ICodePostComplete() {
+
+        @Override
+        public void onCodePostComplete(CodePostCompleteEvent evt) {
+            if ( evt.isSuccessful()  ){
+                // ??? hurray we completed commenting on gist.
+                MessageDialogClickable.show(null, "Succesfully posted comment to gist", null);
+            }
+            else{
+                // ??? there was some error, commenting on gist.
+                MessageDialogClickable.show(null, "Failed posting comment to gist", null);
+            }
+        }
+    };
+
+//    /**
+//     * Replies with code to given tweet.
+//     * We reply in simple way: 
+//     * a) post code to github as gist
+//     * b) if successful we tweet the link to the gist and screenshot of the image.
+//     * c) if tweet is successful, then we can comment on gist with the link to the image, so that gist as well has screenshot.
+//     * 
+//     * @param text
+//     * @param aTweet 
+//     */
+//    private void sendCodeAsReplyFirstGistTweetCommentWithImage(String text, final File mediaFile,  final AbstractTweet aTweet) {
+//        // post code to code server
+//        codePoster.postCode(text, new ICodePostComplete() {
+//
+//            /**********************************************************
+//             * This runs if post code is successful.
+//             **********************************************************/
+//            @Override
+//            public void onCodePostComplete(CodePostCompleteEvent evt) {
+//
+//                if (evt.isSuccessful()) {
+//                    String postedUrl = evt.getUrlString();
+//                    
+//                    // send tweet with image
+//                    tweetWithImage(??);
+//                    
+//                } else {
+//                    JOptionPane.showMessageDialog(null, "Error when posting code to internet");
+//                }
+//                //TODO: implement post
+//            }
+//        });
+//
+//        // on success: tweet the code url inside of the tweet.
+//        
+//    }    
+//    
+//    /**
+//     * Helper. Tweets asynchronously and after that posts image as gist comment.
+//     */
+//    private void tweetWithImageAndGistComment(String gistUrl, File mediaFile, AbstractTweet aTweetInReplyTo) {
+//        tweetPoster.postTweetReply("I remixed your sketch void setup draw #p5 " + gistUrl, mediaFile, aTweetInReplyTo, new ITweetPostComplete() {
+//            @Override
+//            public void onTweetPostComplete(TweetPostCompleteEvent evt) {
+//                if (evt.isSuccessful()) {
+//
+//                    here we should post comment to gist.
+//                    String imageUrl  = evt.getPostedImageUrl();
+//                    if  ( imageUrl != null ){
+//                        postGist(gistUrl, imageUrl, ? should here be as well listener?);
+//                    }
+//                    else{
+//                        JOptionPane.showMessageDialog(null, "<html><B>Succesfully replied<b> to the tweet with: <a href='" + evt.getTweetUrl() + "'>"
+//                                + evt.getTweetUrl() + "</a></html>");
+//                    }
+//                } else {
+//                    JOptionPane.showMessageDialog(null, "Cannot post tweet to internet, error: " + evt.getException().getMessage());
+//
+//                }
+//            }
+//        });
+//    }
+    
+    
     /**
      * Sets source code formatter.
      * @param formatter NOT NULL
