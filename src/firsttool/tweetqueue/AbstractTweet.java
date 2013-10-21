@@ -39,6 +39,12 @@ public class AbstractTweet {
     private String mFormattedText;
     
     /**
+     * This is icon string used by default, in case we're using dummy one.
+     */
+//    private String DEBUG_DEFAULT_ICON_STRING = "https://www.google.ie/images/srpr/logo11w.png"; // this one is too big, so it overheats my laptop
+    private String DEBUG_DEFAULT_ICON_STRING = "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c36.36.456.456/s160x160/522364_4101263010773_332752649_n.jpg"; 
+    
+    /**
      * This constructor is meant to create "dummy" abstract tweets.
      * @param dummyMessage 
      */
@@ -69,13 +75,21 @@ public class AbstractTweet {
 
     /**
      * Returns URL as string, pointing to the 
-     * image representing this tweet.
+     * image representing this tweet. ? what does it return in case there's a 
+     * WARNING: 
+     *  What happens in case this is dummy Abstract tweet???
      * 
      * INCUIM: this should be poster's image.
      * @return 
      */
     public String getIconUrlString(){
-        return mOriginalTweet.getUser().getBiggerProfileImageURL();
+        if ( isDummy() ){
+            // TODO: what do we return ?
+            return DEBUG_DEFAULT_ICON_STRING;
+        }
+        else{
+            return mOriginalTweet.getUser().getBiggerProfileImageURL();
+        }
     }
     
     /**
@@ -88,7 +102,7 @@ public class AbstractTweet {
      * @return 
      */
     public String getText(){
-         if ( mDummyMessage != null ){
+         if ( isDummy() ){
              return mDummyMessage;
          }
          
@@ -99,16 +113,18 @@ public class AbstractTweet {
     }
     
     
-    
+    /**
+     * Returns string representing status of the AbstractTweet
+     * @return 
+     */
     @Override
     public String toString() {
-        if ( mDummyMessage != null ){
+        if ( isDummy() ){
             return "This AbstrcatTweet intance is DUMMY: "  + mDummyMessage;
         }
         if ( mOriginalTweet == null ){
             return "[NULL]";
         }
-        
         
         //return mOriginalTweet.toString();  // first let's try this.
                                             // just outputs too much shit: all the
@@ -129,6 +145,15 @@ public class AbstractTweet {
     public String getUserWithoutAt() {
         // TODO: implement getUserWithoutAt
         return mOriginalTweet.getUser().getScreenName();
+    }
+
+    /**
+     * Returns whether this is a dummy tweet or not. 
+     * @return 
+     */
+    private boolean isDummy() {
+        return (mDummyMessage != null);
+        
     }
     
     
