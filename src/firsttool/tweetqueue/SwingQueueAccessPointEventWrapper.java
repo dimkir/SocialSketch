@@ -1,10 +1,12 @@
 package firsttool.tweetqueue;
 
 import firsttool.ServiceLocator;
-import firsttool.tweetqueue.IQueueAccessPoint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
@@ -37,7 +39,7 @@ public class SwingQueueAccessPointEventWrapper {
      * @param listener non-null
      */
     public SwingQueueAccessPointEventWrapper(IOnNewTweet listener) throws ServiceLocator.ServiceLocatorException{
-        this(listener, C_DEFAULT_REFRESH_DELAY_MILLIS);
+        this(C_DEFAULT_REFRESH_DELAY_MILLIS, listener );
     }
     
     /**
@@ -46,7 +48,7 @@ public class SwingQueueAccessPointEventWrapper {
      * @param listener
      * @param refreshDelayMillis 
      */
-    public SwingQueueAccessPointEventWrapper(IOnNewTweet listener, int refreshDelayMillis) throws ServiceLocator.ServiceLocatorException
+    public SwingQueueAccessPointEventWrapper(int refreshDelayMillis, IOnNewTweet listener) throws ServiceLocator.ServiceLocatorException
     {
         if ( listener == null ){
             throw new IllegalArgumentException("Listener parameter cannot be null");
@@ -60,11 +62,12 @@ public class SwingQueueAccessPointEventWrapper {
         
         
         // setup service
+        // TODO: should this be accessed through Service locator? It's actually not even in the same package?
         final IQueueAccessPoint queueAccessPoint = (IQueueAccessPoint) ServiceLocator.getSerivce(ServiceLocator.SVC_LIVE_TWEET_QUEUE);
         
         
         // setup timer
-        mRefreshTimer = new Timer(refreshDelayMillis, new ActionListener() {
+        mRefreshTimer = new javax.swing.Timer(refreshDelayMillis, new ActionListener() {
             /**
              * This will be called every few seconds.
              */
@@ -73,7 +76,7 @@ public class SwingQueueAccessPointEventWrapper {
                 // here I need to collect things and put them there!
                 // here i need to fetch all available tweets into array list
                 // and if there're any available to fire the event.
-                logln("Timer even has occured");
+                logln("SwingQueueAccessPointWrapper: Timer event has occured");
                 ArrayList<AbstractTweet> arlis = null;
                 AbstractTweet aTweet = null;
                 while ( ( aTweet = queueAccessPoint.getNextOrNull() ) != null ){
@@ -124,4 +127,48 @@ public class SwingQueueAccessPointEventWrapper {
     public interface IOnNewTweet {
         void onNewTweet(ArrayList<AbstractTweet> tweetArlis);
     }
+    
+    
+    
+    /**
+     * Here we try to implement test case of this class in swing.
+     * @param args 
+     */
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                 createAndShowGui();
+            }
+
+        });
+        
+    }
+    
+    private static void createAndShowGui() {
+        try {
+            // TODO: implement createAndShowGui
+            final QueueWrapperTestFrame frame = new QueueWrapperTestFrame();
+            
+            SwingQueueAccessPointEventWrapper queueWrapper = new SwingQueueAccessPointEventWrapper(500, new IOnNewTweet() {
+
+                                                  @Override
+                                                  public void onNewTweet(ArrayList<AbstractTweet> tweetArlis) {
+                                                      for( AbstractTweet aTweet : tweetArlis){
+                                                        frame.addMessageToConsole(aTweet.getText());
+                                                      }
+                                                  }
+                                              });
+            
+            
+            frame.setVisible(true);
+        } catch (ServiceLocator.ServiceLocatorException ex) {
+            System.out.println("Test run crashed");
+            Logger.getLogger(SwingQueueAccessPointEventWrapper.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+    }
+    
 }
