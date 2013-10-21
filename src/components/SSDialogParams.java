@@ -20,6 +20,8 @@ public class SSDialogParams {
     private File mImageDir;
     private JFrame mParentFrame;
     
+    private AdvancedCallback mAdvancedCallback;
+    
     
     /**
      * Visibility is package, so that only from
@@ -42,6 +44,16 @@ public class SSDialogParams {
         return onImagePickComplete;
     }
 
+    
+    
+    public SSDialogParams setAdvancedCallback(AdvancedCallback advCallback){
+        mAdvancedCallback = advCallback;
+        return this;
+    }
+    
+    AdvancedCallback getAdvancedCallback(){
+        return mAdvancedCallback;
+    }
     
     public SSDialogParams setDirectoryWithImages(File dir){
         mImageDir = dir;
