@@ -11,7 +11,6 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.URLEntity;
-import twitter4j.conf.ConfigurationBuilder;
 
     
     
@@ -25,14 +24,13 @@ public class TweetPoster {
     /**
      * This are twitter4j objects.
      */
-    private ConfigurationBuilder cb;
     private Twitter twitter;    
     
     /**
      * Flag defines whether we want to post tweets just like standalone 
      * tweets or as replies to someone.
      */
-    private boolean C_POST_TWEETS_AS_REPLIES = false;
+    private boolean C_POST_TWEETS_AS_REPLIES = true;
     
     /**
      * Initializes object. 
@@ -40,8 +38,7 @@ public class TweetPoster {
      * thus this should not do any heavy-lifting.
      */
     public  TweetPoster(){
-        cb = createConfigurationFromXml(null);
-        twitter = new TwitterFactory(cb.build()).getInstance();
+        twitter = TwitterFactory.getSingleton();
     }
     
     
@@ -93,10 +90,10 @@ public class TweetPoster {
                     
                     // debug print entities in the posted tweet.
                             URLEntity[] urlEntities = updatedStatus.getURLEntities();
-                            printUrlEntities(urlEntities);
+                            TPUtils.printUrlEntities(urlEntities);
 
                             MediaEntity[] mediaEntities = updatedStatus.getMediaEntities();
-                            printMediaEntities(mediaEntities);
+                            TPUtils.printMediaEntities(mediaEntities);
                     
                     listener.onTweetPostComplete(new TweetPostCompleteEvent(updatedStatus));
                     
@@ -113,65 +110,6 @@ public class TweetPoster {
         t.start();
         
     }
-    
-    /**
-     * Just helper method to print url entities.
-     *
-     * @param urlEntities can be NULL if no entities available.
-     *
-     */
-    private void printUrlEntities(URLEntity[] urlEntities) {
-        if (urlEntities == null) {
-            System.out.println("$$$$ URL Entities are NULL empty");
-            return;
-        }
-
-        for (URLEntity ue : urlEntities) {
-            System.out.println("$$$$ URL Entity: " + ue.getURL());
-        }
-    }
-
-    private void printMediaEntities(MediaEntity[] mediaEntities) {
-        if (mediaEntities == null) {
-            System.out.println("$$$$ MEDIA Entities are NULL empty");
-            return;
-        }
-
-        for (MediaEntity medent : mediaEntities) {
-            System.out.println("$$$$ Media Entity: " + medent.getMediaURL());
-        }
-    }
             
-    /**
-     * 
-     * @param xmlPathfile
-     * @return 
-     */
-    private ConfigurationBuilder createConfigurationFromXml(String xmlPathfile)
-    {
-        ConfigurationBuilder cb;
-       cb = new ConfigurationBuilder();
-//        try {
-//            PApplet sketch = new PApplet(); // this is kinda hack. I dunno if it's good to instantiate 
-//                                            // PApplet object. I just do this because LibConfig needs access to loadXML()
-//            LibConfig libConfig = new LibConfig(sketch, xmlPathfile);
-//
-//            cb.setOAuthConsumerKey(libConfig.getUserToken());
-//            cb.setOAuthConsumerSecret(libConfig.getUserSecret());
-//            cb.setOAuthAccessToken(libConfig.getOAuthToken());
-//            cb.setOAuthAccessTokenSecret(libConfig.getOAuthSecret());
-            
-    // these are keys for my test twitter account with READ WRITE permissions
-       
-            cb.setOAuthConsumerKey("R40rPo3ZXuGKWcrPDDsY2w");
-            cb.setOAuthConsumerSecret("czn2Ntngx7yPrSRHCjJ4dYNWmuGpWCeIU6rnbHWAvsI");
-            cb.setOAuthAccessToken("1413163736-m71AJm5YqswVjbqcqSi0qSmjbbjSTblgU4yLqFH");
-            cb.setOAuthAccessTokenSecret("aRxUqe7KNUkju1i6EzQHuwpDxnNo8hIlUbJEYFRtNag");
-//        } catch (ConfigParsingException ex) {
-//            Logger.getLogger(TweetFetchThread.class.getName()).log(Level.SEVERE, null, ex);
-//            throw new RuntimeException("Early crash is good. Can't access configuration");
-//        }
-        return cb;
-    }        
-    
+   
 }
