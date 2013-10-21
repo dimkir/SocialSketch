@@ -95,7 +95,7 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
 //            ThumbnailAction thumbAction = creatActionFromIcon(icon);
 //            publish(thumbAction);
             
-            ImageEnvelope envelope = makeImageEnvelopeFrom(icon);
+            ImageEnvelope envelope = makeImageEnvelopeFrom(icon, f);
             publish(envelope);
         }
         // unfortunately we must return something, and only null is valid to
@@ -155,22 +155,22 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
      * Helper: Creates "envelope" containing results of the threads, work
      * eg: loaded and resized images.
      * 
-     * @param icon
+     * @param icon NOT NULL
      * @return 
      */
-    private ImageEnvelope makeImageEnvelopeFrom(ImageIcon icon) {
+    private ImageEnvelope makeImageEnvelopeFrom(ImageIcon icon, File originImage) {
         ImageEnvelope envelope;
-        if (icon != null) {
+//        if (icon != null) {
 
             ImageIcon thumbnailIcon = new ImageIcon(GraphicsUtils.getScaledImage(icon.getImage(), C_ICON_WIDTH, C_ICON_HEIGHT));
 
-            envelope = new ImageEnvelope(icon, thumbnailIcon, "come caption blah blahb blah");
+            envelope = new ImageEnvelope(icon, thumbnailIcon, "come caption blah blahb blah", originImage);
 
-        } else {
-            // the image failed to load for some reason
-            // so load a placeholder instead
-            envelope = new ImageEnvelope(placeholderIcon, placeholderIcon, "some caption... bla blah");
-        }
+//        } else {
+//            // the image failed to load for some reason
+//            // so load a placeholder instead
+//            envelope = new ImageEnvelope(placeholderIcon, placeholderIcon, "some caption... bla blah");
+//        }
         return envelope;
     }    
 
@@ -210,9 +210,11 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
         private final Icon mMainImage;
         private final Icon mThumbnail;
         private final String mDescription;
+        private File mOriginPath;
         
-        private ImageEnvelope(Icon mainImageIcon, Icon thumbnailIcon, String descr) {
+        private ImageEnvelope(Icon mainImageIcon, Icon thumbnailIcon, String descr, File originPath) {
             mMainImage = mainImageIcon;
+            mOriginPath = originPath;
             mThumbnail= thumbnailIcon;
             mDescription = descr;
         }
@@ -226,6 +228,10 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
 
         String getDescription() {
             return mDescription;
+        }
+
+        File getOriginPath() {
+            return mOriginPath;
         }
     }
 }
