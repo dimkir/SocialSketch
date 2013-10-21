@@ -264,45 +264,7 @@ implements IQueueAccessPoint,
          
     }
 
-    /**
-     * Instantiates ConfigurationBuilder and populates it with params from
-     * xml file.
-     * @param xmlPathfile
-     * @return 
-     */
-    private ConfigurationBuilder createConfigurationFromXml(String xmlPathfile)
-    {
-        ConfigurationBuilder cb;
-       cb = new ConfigurationBuilder();
-//        try {
-//            PApplet sketch = new PApplet(); // this is kinda hack. I dunno if it's good to instantiate 
-//                                            // PApplet object. I just do this because LibConfig needs access to loadXML()
-//            LibConfig libConfig = new LibConfig(sketch, xmlPathfile);
-//
-//            cb.setOAuthConsumerKey(libConfig.getUserToken());
-//            cb.setOAuthConsumerSecret(libConfig.getUserSecret());
-//            cb.setOAuthAccessToken(libConfig.getOAuthToken());
-//            cb.setOAuthAccessTokenSecret(libConfig.getOAuthSecret());
-            
-    // these are keys for my test twitter account. Need to make them configurable via file.
-//                                        cb.setOAuthConsumerKey("4bPTUhOaoC2MDpqC92AA");
-//                                        cb.setOAuthConsumerSecret("vqoUTGKiEB5hx5LVJ94qUngI5YQQy4qdmQVhMnG1M");
-//                                        cb.setOAuthAccessToken("1413163736-GHX3aerScs0vSGGT5gI7x0s2lIsr9jxe8yFGAaq");
-//                                        cb.setOAuthAccessTokenSecret("1BynWanYttJWDy5mfYxatvqQtdKn3SXpdNGVqlGSJY");
-       
-            cb.setOAuthConsumerKey("R40rPo3ZXuGKWcrPDDsY2w");
-            cb.setOAuthConsumerSecret("czn2Ntngx7yPrSRHCjJ4dYNWmuGpWCeIU6rnbHWAvsI");
-            cb.setOAuthAccessToken("1413163736-m71AJm5YqswVjbqcqSi0qSmjbbjSTblgU4yLqFH");
-            cb.setOAuthAccessTokenSecret("aRxUqe7KNUkju1i6EzQHuwpDxnNo8hIlUbJEYFRtNag");       
-       
-       
-//        } catch (ConfigParsingException ex) {
-//            Logger.getLogger(TweetFetchThread.class.getName()).log(Level.SEVERE, null, ex);
-//            throw new RuntimeException("Early crash is good. Can't access configuration");
-//        }
-        return cb;
-    }    
-    
+  
     /**
      * Initializes twitter4j objects to be ready to query. Will be called every loop in
      * run(), so this one needs to check itself not to run many times.
@@ -311,8 +273,8 @@ implements IQueueAccessPoint,
      */
     private void initTwitter4jIfNotInitialized() {
         if ( twitter  == null ){
-                cb = createConfigurationFromXml(C_TWITTER_CONFIG_XML);
-                twitter = new TwitterFactory(cb.build()).getInstance();        
+                //twitter = new TwitterFactory(cb.build()).getInstance();        
+                twitter =  TwitterFactory.getSingleton();
         }
     }    
     
