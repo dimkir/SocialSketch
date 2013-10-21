@@ -42,7 +42,8 @@ implements IQueueAccessPoint,
     private static final int C_TWEET_REFRESH_DELAY_MILLIS = 15 * 1000; // 15 seconds
     private static final int C_MAX_TWEETS_IN_THE_QUEUE = 10 * 1000; // 10k for starters. maybe need to reduce to 10 or 20 to test mechanisms
     private static final int C_TWEET_SEARCH_RESULT_COUNT = 100; // 10k for starters. maybe need to reduce to 10 or 20 to test mechanisms
-    private static final String C_TWITTER_DEFAULT_SEARCH_QUERY = "void OR size #p5";    
+//    private static final String C_TWITTER_DEFAULT_SEARCH_QUERY = "void OR size #p5";    
+    private static final String C_TWITTER_DEFAULT_SEARCH_QUERY = "void setup draw";    
 
     /**
      * Just outputs proxy settings for current VM
