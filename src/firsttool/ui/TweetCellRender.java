@@ -57,6 +57,7 @@ implements ListCellRenderer
                                                                    boolean isSelected, 
                                                                  boolean cellHasFocus)
     {
+         System.out.println(System.currentTimeMillis()+ ":: getListCellRendererComponent() is called with index: " + index);
          if ( value instanceof AbstractTweet ){
              
             // CELL CONTAINS ABSTRACT TWEET OBJECT
@@ -83,7 +84,7 @@ implements ListCellRenderer
          else{
              // probably no THIS LIST CELL DOESN'T CONTAIN "AbtractTweet" object,
              // so we probably just need to render text, without icons.
-             setText(value.toString());
+             setText("List element is not instance of AbstractTweet, thus rendring it as text:" + value.toString());
          }
          
 
@@ -147,7 +148,7 @@ implements ListCellRenderer
                     // I add the 
                     String msg = String.format("TweetCellRender: after background download of the Icon at url [%s], the icon status is : %s",
                                 iconUrlString, ( imageIcon == null ? "invalid(null)" : "valid(successdowloading)"));
-                    System.out.println("TweetCellRender: after background download of the Icon ");
+                    System.out.println(msg);
                     // TODO: looksl like this can be NULL, in case download of the icon 
                     //       crashed with an exception
                     
@@ -156,7 +157,18 @@ implements ListCellRenderer
                     // TODO: need to check if this cell still holds the tweet which I was
                     //         downloading the picture for.
     //                    if (THIS_TWEET_IS_STILL_IN_THE_LIST) {
-                            cell.setIcon(imageIcon);
+                    
+                    
+                    // **********************************************
+                    // **********************************************
+                    // **********************************************
+                    // this was a bug, as this statement doesn't seem to produce any effect on the
+                    // cell. In case there would be no LocalIconStore specified, it will
+                    // just enter infinite loop "download icon, trigger revalidate, trigger getListCellRendererComponent() -> downloadicon
+                    // looks like this one doesn't have any effect.
+//                            cell.setIcon(imageIcon);
+                    
+                    
                             //cell.invalidate();
                             forceJListToRevalidate(parentList);
     //                    }
@@ -219,7 +231,10 @@ implements ListCellRenderer
     }
     
     private static void createAndShowGui() {
-        TweetCellRenderFrameTest frame = new TweetCellRenderFrameTest(new TweetCellRender(null));
+        // cell. In case there would be no LocalIconStore specified, it will
+        // just enter infinite loop "download icon, trigger revalidate, trigger getListCellRendererComponent() -> downloadicon
+                                                                           // this should have been the thing.
+        TweetCellRenderFrameTest frame = new TweetCellRenderFrameTest(new TweetCellRender(new LocalIconStore()));
         frame.setVisible(true);
     }
 
