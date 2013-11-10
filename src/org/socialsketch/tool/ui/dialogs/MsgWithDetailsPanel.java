@@ -32,7 +32,8 @@ public class MsgWithDetailsPanel extends javax.swing.JPanel {
         
         txtaErrorDetails.setText(ex.toString() + " \n\nStacktrace:\n"  + stackTraceToString(ex));
         
-        txtaErrorDetails.setVisible(false);        
+        setDetailsVisible(false);
+//        txtaErrorDetails.setVisible(false);        
     }
     
     /**
@@ -56,7 +57,7 @@ public class MsgWithDetailsPanel extends javax.swing.JPanel {
         lblErrorMessage = new javax.swing.JLabel();
         btnOk = new javax.swing.JButton();
         btntogDetails = new javax.swing.JToggleButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        scrollErrorDetailsWrap = new javax.swing.JScrollPane();
         txtaErrorDetails = new javax.swing.JTextArea();
 
         lblErrorMessage.setText("Human readable error message");
@@ -78,7 +79,7 @@ public class MsgWithDetailsPanel extends javax.swing.JPanel {
         txtaErrorDetails.setEditable(false);
         txtaErrorDetails.setColumns(20);
         txtaErrorDetails.setRows(5);
-        jScrollPane1.setViewportView(txtaErrorDetails);
+        scrollErrorDetailsWrap.setViewportView(txtaErrorDetails);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -97,7 +98,7 @@ public class MsgWithDetailsPanel extends javax.swing.JPanel {
                         .addGap(50, 50, 50))))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1)
+                .addComponent(scrollErrorDetailsWrap)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -110,7 +111,7 @@ public class MsgWithDetailsPanel extends javax.swing.JPanel {
                     .addComponent(btnOk)
                     .addComponent(btntogDetails))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
+                .addComponent(scrollErrorDetailsWrap, javax.swing.GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -141,8 +142,8 @@ public void setActionListener(ActionListener callback){
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnOk;
     private javax.swing.JToggleButton btntogDetails;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblErrorMessage;
+    private javax.swing.JScrollPane scrollErrorDetailsWrap;
     private javax.swing.JTextArea txtaErrorDetails;
     // End of variables declaration//GEN-END:variables
 
@@ -153,12 +154,8 @@ public void setActionListener(ActionListener callback){
      * @param b flag of whether it should be visible or not.
      */
     private void setDetailsVisible(boolean b) {
-        if ( b ){
-            txtaErrorDetails.setVisible(b);
-        }
-        else{
-            txtaErrorDetails.setVisible(b);
-        }
+//        scrollErrorDetailsWrap.setVisible(b);
+        txtaErrorDetails.setVisible(b);
     }
     
     
