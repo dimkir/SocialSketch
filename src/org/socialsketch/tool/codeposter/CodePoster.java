@@ -86,13 +86,17 @@ public class CodePoster {
      * 
      * @param contents
      * @param fileName filename of the main gist file
+     * @param gistId NULL or gist id. If NULL, then new gist will be created.
      * @return
      * @throws IOException ?probably if there was error creating gist? like authentication expiration
      *                      or network error? or "gist too big" or smth like that. But it's a guess at the mo.
      */
-    private Gist postGistBlocking(String contents, String fileName) throws IOException{
+    private Gist postGistBlocking(String contents, String fileName, String gistId) throws IOException{
 		// Create Gist
 		Gist gist = new Gist();
+                if ( gistId != null ){
+                    gist.setId(gistId);
+                }
 		gist.setPublic(C_IS_GIST_PUBLIC);
                 
 		gist.setDescription("Created using Sketch2Tweet tool");
@@ -101,7 +105,15 @@ public class CodePoster {
 		file.setFilename(fileName);
                 
 		gist.setFiles(Collections.singletonMap(file.getFilename(), file));
-		gist = mGistService.createGist(gist);
+                
+                if ( gistId != null){
+                    gist = mGistService.updateGist(gist);
+                    
+                }
+                else{
+                    gist = mGistService.createGist(gist);
+                }
+               
 
 //               // we won't really be commenting it here anymore, as at the moment of posting code,
 //               // we don't have reference to the screenshot image URL yet.                  
@@ -120,17 +132,28 @@ public class CodePoster {
      * Non blocking call.
      * 
      * @param text
-     * @param code to be executed on the same thread as it was called... but how to achieve it???
+     * @param iCodePostComplete
      */
     public void postCode(final String text, final ICodePostComplete iCodePostComplete) {
-        //throw new UnsupportedOperationException("Not yet implemented");
-        // ?? can I use timer?
+        String gistIdNull = null;
+        postCode(text, iCodePostComplete, gistIdNull);
+        
+    }
+    
+    /**
+     * This is "updating" gist with the given code.
+     * 
+     * @param text new text of the gist.
+     * @param iCodePostComplete callback 
+     * @param gistId NULL or valid id. When NULL supplied, new gist will be created. Otherwise existing gist will be updated.
+     */
+    public void postCode(final String text, final ICodePostComplete iCodePostComplete, final String gistId){
         // TODO: this shouldn't be called immediately, but after some time.
         Thread thread = new Thread(){
             @Override
             public void run() {
                 try {
-                    Gist gist = postGistBlocking(text, "sketch_code.pde");
+                    Gist gist = postGistBlocking(text, "sketch_code.pde", gistId);
                     CodePostCompleteEvent completeEvent = new CodePostCompleteEvent(gist.getHtmlUrl(), true /* success flag */);
                                           completeEvent.setGistId(gist.getId());
                     
@@ -142,8 +165,7 @@ public class CodePoster {
                 //throw new UnsupportedOperationException("Not supported yet.");
             }
         };
-        thread.start();
-        
+        thread.start();        
     }
     
     /**
@@ -212,25 +234,31 @@ public class CodePoster {
 
                 @Override
                 public void onCodePostComplete(CodePostCompleteEvent evt) {
-                     if ( evt.isSuccessful() ){
-                         copo.postComment("This is comment for the gist", evt.getGistId(), new ICodePostComplete() {
+                    copo.postCode("this is new code to\n post", new ICodePostComplete() {
 
-                             @Override
-                             public void onCodePostComplete(CodePostCompleteEvent evt) {
-                                 if ( evt.isSuccessful() ){
-                                     // succesful
-                                     System.out.println("Succesfully posted comment for the gist: " + evt.toString());
-                                 }
-                                 else{
-                                     // unsuccessful
-                                     System.out.println("Failure posting comment for the gist: " + evt.toString());
-                                 }
-                             }
-                         });
-                     }
-                     else{
-                         System.out.println("Code posting wasn't successful: " + evt.toString());
-                     }
+                        @Override
+                        public void onCodePostComplete(CodePostCompleteEvent evt) {
+                                        if ( evt.isSuccessful() ){
+                                            copo.postComment("This is comment for the gist", evt.getGistId(), new ICodePostComplete() {
+
+                                                @Override
+                                                public void onCodePostComplete(CodePostCompleteEvent evt) {
+                                                    if ( evt.isSuccessful() ){
+                                                        // succesful
+                                                        System.out.println("Succesfully posted comment for the gist: " + evt.toString());
+                                                    }
+                                                    else{
+                                                        // unsuccessful
+                                                        System.out.println("Failure posting comment for the gist: " + evt.toString());
+                                                    }
+                                                }
+                                            });
+                                        }
+                                        else{
+                                            System.out.println("Code posting wasn't successful: " + evt.toString());
+                                        }                            
+                        }
+                    }, evt.getGistId());
                 }
             });
             
