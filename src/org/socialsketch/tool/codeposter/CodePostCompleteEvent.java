@@ -2,6 +2,7 @@ package org.socialsketch.tool.codeposter;
 
 /**
  * This is event which informs callback of the status of the operations of code post.
+ * 
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
 public class CodePostCompleteEvent {
@@ -12,9 +13,10 @@ public class CodePostCompleteEvent {
     private final String mErrorMessage;
     
     /**
-     * Gist id, NULL if not avialable.
+     * Gist id, NULL if not available.
      */
     private String mGistId;
+    private Exception mCause;
 
     /**
      * Creates event. If event successful the param0 is the success url.
@@ -61,6 +63,14 @@ public class CodePostCompleteEvent {
      */
     public String getGistId(){
         return mGistId;
+    }
+
+    public void setCause(Exception ex){
+        mCause = ex;
+    }
+    
+    public Exception getCause() {
+        return mCause;
     }
     
     
