@@ -43,8 +43,10 @@ public class Consolepane extends javax.swing.JPanel {
 
         txtaMainConsole.setBackground(new java.awt.Color(0, 0, 0));
         txtaMainConsole.setColumns(20);
+        txtaMainConsole.setFont(new java.awt.Font("Consolas", 0, 12)); // NOI18N
         txtaMainConsole.setForeground(new java.awt.Color(51, 255, 0));
         txtaMainConsole.setRows(5);
+        txtaMainConsole.setText("Here console messages go ... ");
         jScrollPane1.setViewportView(txtaMainConsole);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
