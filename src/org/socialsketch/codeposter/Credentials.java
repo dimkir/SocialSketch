@@ -41,11 +41,11 @@ public class Credentials {
     }
     
     
-    String getPassword(){
+    public String getPassword(){
         return mPassword;
     }
     
-    String getUserName(){
+    public String getUserName(){
         return mUserName;
     }
     
