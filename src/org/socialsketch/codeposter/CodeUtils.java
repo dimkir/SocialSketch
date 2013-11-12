@@ -26,5 +26,13 @@ public class CodeUtils {
             logger.info("Got file record: [" + kkk + "] with value of length: " + map.get(kkk).getContent().length());
         }
     }
+
+    /**
+     * Just method to spawn blank credentials object.
+     * @return
+     */
+    public static Credentials spawnBlankCredentials() {
+        return new Credentials();
+    }
     
 }
