@@ -1,17 +1,17 @@
 package org.socialsketch.tool;
 
-import org.socialsketch.tool.codeposter.CodePostCompleteEvent;
-import org.socialsketch.tool.codeposter.CodePoster;
-import org.socialsketch.tool.codeposter.ICodePostComplete;
-import org.socialsketch.tool.tweetposter.ITweetPostComplete;
-import org.socialsketch.tool.tweetposter.TweetPostCompleteEvent;
-import org.socialsketch.tool.tweetposter.TweetPoster;
+import org.socialsketch.codeposter.CodePostCompleteEvent;
+import org.socialsketch.codeposter.CodePoster;
+import org.socialsketch.codeposter.ICodePostComplete;
+import org.socialsketch.tweetposter.ITweetPostComplete;
+import org.socialsketch.tweetposter.TweetPostCompleteEvent;
+import org.socialsketch.tweetposter.TweetPoster;
 import org.socialsketch.tool.tweetqueue.AbstractTweet;
 import org.socialsketch.tool.tweetqueue.IQueueAccessPoint;
 import org.socialsketch.tool.ui.IBasicPassiveUI;
 import org.socialsketch.tool.ui.IBasicPassiveUI.BasicPassiveUIAction;
 import org.socialsketch.tool.ui.IBasicPassiveUI.IBasicUIActionListener;
-import org.socialsketch.tool.ui.MessageDialogClickable;
+import org.socialsketch.tool.ui.dialogs.MessageDialogClickable;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,7 +31,13 @@ import javax.swing.WindowConstants;
 import processing.app.Formatter;
 
 /**
- * What is the purpose of this class?
+ * This is the "controller" or the "manager" for solving the domain problem of
+ * displaying stream of "sketch updates" and performing actions on them.
+ * (eg: load to editor, or reply to the given "sketch update" etc).
+ * 
+ * The domain problem is to "receive updates" from the internet about new tweets,
+ * display them in UI. 
+ * 
  * 
  * When using this frame, all of the "building of frame" is hidden
  * in the super class
@@ -66,11 +72,12 @@ implements
     private TweetPoster tweetPoster = new TweetPoster();
     
     /**
-     * Runs on swing EDT thread.
+     * Initialize modder (services it uses) and as well UI.
      * 
      * Kinda should be failable.
      * 
      * @throws ModderEx when some initialization fails.
+     * @throws org.socialsketch.tool.ServiceLocator.ServiceLocatorException
      */
     public SketchModder() throws ModderEx, ServiceLocator.ServiceLocatorException
     {
@@ -86,7 +93,7 @@ implements
             codePoster = new CodePoster(); // throws IOException
             
             // as we're running on EDT thread, this shouldn't block 
-            ui.setVisible(true); // as we're running on EDT thread, this shouldn't block
+            ui.setUIVisible(true); // as we're running on EDT thread, this shouldn't block
             
             
             
@@ -129,8 +136,25 @@ implements
         return "Simple Sketch Modder service for simple UI with tweets";
     }
     
-    
+    /**
+     * This method is shutting down all the services.
+     * @throws IllegalStateException (that's my guess, in case it is still in "initializing" state.
+     */
+    public void shutdown(){
+        if  ( isInitializing() ){
+            throw new IllegalStateException("Cannot shutdown during intialization process");
+        }
+        //ServiceLocator.detachService(codePoster);
+        
+        // TODO: shutdown all the services.
+        // 
+        
+    }
 
+    private boolean isInitializing() {
+        // TODO: implement isInitializing
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     
     // ===========================================================
@@ -190,7 +214,7 @@ implements
 
     @Override
     public void setVisible(boolean b) {
-        ui.setVisible(b);
+        ui.setUIVisible(b);
     }
 
     private void fireModderAction(ModderAction action){
@@ -403,6 +427,7 @@ implements
         }
         mFormatter = formatter;
     }
+
 
     
 
