@@ -1,4 +1,4 @@
-package org.socialsketch.tool.tweetposter;
+package org.socialsketch.tweetposter;
 
 import org.socialsketch.tool.tweetqueue.AbstractTweet;
 import java.io.File;

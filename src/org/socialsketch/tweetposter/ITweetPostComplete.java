@@ -1,4 +1,4 @@
-package org.socialsketch.tool.tweetposter;
+package org.socialsketch.tweetposter;
 
 /**
  * Interface for callback, informing that some operation of TweetPoster is complete.

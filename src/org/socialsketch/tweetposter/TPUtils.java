@@ -1,4 +1,4 @@
-package org.socialsketch.tool.tweetposter;
+package org.socialsketch.tweetposter;
 
 import twitter4j.MediaEntity;
 import twitter4j.URLEntity;
