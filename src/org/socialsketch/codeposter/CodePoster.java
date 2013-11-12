@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import org.apache.log4j.Logger;
 import org.eclipse.egit.github.core.Authorization;
 import org.eclipse.egit.github.core.Comment;
@@ -356,7 +355,7 @@ public class CodePoster {
 //		gist.setFiles(Collections.singletonMap(file.getFilename(), file));
 		gist.setFiles(fileMap);
                 
-                fileListToConsole(gist);
+                CodeUtils.fileListToConsole(gist);
                 
                 
                 
@@ -405,28 +404,5 @@ public class CodePoster {
 //		file.setContent(contents);
 //		file.setFilename(fileName);
 
-    /**
-     * Debug method just outputs to console the files.
-     * 
-     * @param gist 
-     */
-    private void fileListToConsole(Gist gist) {
-        Map<String, GistFile> map = gist.getFiles();
-        Set<String> keySet = map.keySet();
-        for(String kkk : keySet ){
-            logger.info("Got file record: [" + kkk + "] with value of length: " + map.get(kkk).getContent().length() );
-        }
-        
-    }
-
-    
-    
-    
-    
-    
-    
-
-
-    
     
 }
