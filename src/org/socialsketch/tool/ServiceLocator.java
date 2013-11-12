@@ -2,9 +2,9 @@ package org.socialsketch.tool;
 
 import org.socialsketch.tool.tweetqueue.TweetFetchThread;
 import org.socialsketch.tool.ui.IBasicPassiveUI;
-import org.socialsketch.tool.ui.TweetBasicUI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.socialsketch.tool.ui.TweetBasicUI;
 
 /**
  * This is service locator class. As described in 
@@ -101,6 +101,7 @@ public class ServiceLocator {
 
     private static IBasicPassiveUI initializeBasicPassiveUI() {
         return new TweetBasicUI();
+//        return new DashFrame().getDashboard();
     }
 
     public static class ServiceLocatorException extends Exception {
