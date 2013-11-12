@@ -1,9 +1,7 @@
 package org.socialsketch.tool.ui;
 
 import org.socialsketch.tool.ServiceLocator;
-import org.socialsketch.tool.ServiceLocator.ServiceRecord;
 import org.socialsketch.tool.tweetqueue.AbstractTweet;
-import org.socialsketch.tool.tweetqueue.IQueueAccessPoint;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -146,6 +144,7 @@ implements IBasicPassiveUI, ServiceLocator.ServiceRecord
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
         jLabel1 = new javax.swing.JLabel();
@@ -153,6 +152,17 @@ implements IBasicPassiveUI, ServiceLocator.ServiceRecord
         btnReplaceInPDE = new javax.swing.JButton();
         chkAlwaysOnTop = new javax.swing.JCheckBox();
         btnReplyToTweetWithCode = new javax.swing.JButton();
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
@@ -323,7 +333,7 @@ implements IBasicPassiveUI, ServiceLocator.ServiceRecord
                         ui.addTweet(new AbstractTweet("Dummy tweet"));
                     }
                 });
-                ui.setVisible(true);
+                ui.setUIVisible(true);
             }
         });
     }
@@ -334,6 +344,7 @@ implements IBasicPassiveUI, ServiceLocator.ServiceRecord
     private javax.swing.JCheckBox chkAlwaysOnTop;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JList jList1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 
@@ -398,6 +409,13 @@ implements IBasicPassiveUI, ServiceLocator.ServiceRecord
      */
     private void messageBox(String msg) {
         JOptionPane.showMessageDialog(this, msg);
+    }
+
+    @Override
+    public void setUIVisible(boolean visibleFlag) {
+        if ( getJFrame() != null){
+            getJFrame().setVisible(visibleFlag);
+        }
     }
     
     
