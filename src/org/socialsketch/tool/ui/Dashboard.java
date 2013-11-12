@@ -2,6 +2,7 @@ package org.socialsketch.tool.ui;
 
 import javax.swing.JFrame;
 import org.apache.log4j.Logger;
+import org.socialsketch.tool.ServiceLocator;
 import org.socialsketch.tool.tweetqueue.AbstractTweet;
 
 /**
@@ -9,7 +10,7 @@ import org.socialsketch.tool.tweetqueue.AbstractTweet;
  * @author Dimitry Kireyenkov <dimitry@languagekings.com>
  */
 public class Dashboard extends javax.swing.JPanel
-implements IBasicPassiveUI
+implements IBasicPassiveUI, ServiceLocator.ServiceRecord
 {
 
     private IBasicUIActionListener mUIActionListener;
@@ -113,11 +114,29 @@ implements IBasicPassiveUI
      */
     @Override
     public JFrame getJFrame() {
+        if ( mDashboardParentFrame == null ){
+            logger.debug("getJFrame() is called and returned value is NULL");
+        }
+        else{
+            logger.debug("getJFrame() is called and returned value is " + mDashboardParentFrame.toString() );
+        }
         return mDashboardParentFrame;
     }    
 
     void setDashboardParentFrame(JFrame frame) {
         mDashboardParentFrame = frame;
+    }
+
+    @Override
+    public String getServiceDescription() {
+        return "Dashboard panel implementing Simple Passive UI";
+    }
+
+    @Override
+    public void setUIVisible(boolean visibleFlag) {
+        if ( getJFrame() != null ){
+            getJFrame().setVisible(visibleFlag);
+        }
     }
 
 

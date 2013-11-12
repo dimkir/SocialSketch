@@ -17,6 +17,10 @@ public class DashFrame extends javax.swing.JFrame
         // this is necessary because IBasicPassiveUI is supposed to return frame (if it is enclosed in the frame which should be explicitly shown).
         dashboard1.setDashboardParentFrame(this);
     }
+
+    public DashFrame(Dashboard dashboard) {
+        initComponents2(dashboard);
+    }
     
     /**
      * Just returns dashboard.
@@ -27,6 +31,29 @@ public class DashFrame extends javax.swing.JFrame
         return dashboard1;
     }
 
+    //TODO: this code duplicated initComponents() need to fix that later.
+    private void initComponents2(Dashboard dash) {
+
+        dashboard1 = dash;
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(dashboard1, javax.swing.GroupLayout.DEFAULT_SIZE, 418, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(dashboard1, javax.swing.GroupLayout.PREFERRED_SIZE, 428, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        pack();
+    }// </editor-fold>    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -48,8 +75,8 @@ public class DashFrame extends javax.swing.JFrame
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(dashboard1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(dashboard1, javax.swing.GroupLayout.PREFERRED_SIZE, 428, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
@@ -94,6 +121,11 @@ public class DashFrame extends javax.swing.JFrame
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.socialsketch.tool.ui.Dashboard dashboard1;
     // End of variables declaration//GEN-END:variables
+
+    
+    public void setDashboard(Dashboard dashboard) {
+        dashboard1 = dashboard;
+    }
 
 
     
