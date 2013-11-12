@@ -1,4 +1,4 @@
-package org.socialsketch.tool.codeposter;
+package org.socialsketch.codeposter;
 
 /**
  * This is event which informs callback of the status of the operations of code post.

@@ -1,4 +1,4 @@
-package org.socialsketch.tool.codeposter;
+package org.socialsketch.codeposter;
 
 /**
  * Interface for callback on completion of code post event.

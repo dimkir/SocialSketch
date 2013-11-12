@@ -1,4 +1,4 @@
-package org.socialsketch.tool.codeposter;
+package org.socialsketch.codeposter;
 
 import java.io.IOException;
 import java.util.Arrays;

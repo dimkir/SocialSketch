@@ -1,4 +1,4 @@
-package org.socialsketch.tool.codeposter;
+package org.socialsketch.codeposter;
 
 /**
  * This is adapter interface which someone who wants to post/update via code poster
