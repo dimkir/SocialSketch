@@ -56,9 +56,10 @@ public class SketchAdapter  implements ICodePostAdapter
             mPrograms.put(fileName, program);
             mFileNames.add(fileName);
         }
-        // add data folder.
+        // TODO: add scanning / amendment of elements from
+        // the data folder.
         File dataFolder = sketch.getDataFolder();
-        if ( dataFolder == null ){
+        if ( dataFolder == null || !dataFolder.exists() ){
             System.out.println("No DATA folder found.");
         }
         else{
