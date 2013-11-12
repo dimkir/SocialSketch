@@ -145,11 +145,13 @@ public interface ISketchModder {
         
     }
     
+    // Is it ok, if I just add one more action?
     public interface ModderActionTypes
     {
         public static final int ACTION_CODE_EDITOR_REPLACE_WITH = 1;
         public static final int ACTION_CODE_EDITOR_INSERT_INTO = 2;
         public static final int ACTION_MODDER_REQUESTS_CODE = 3;
+        public static final int ACTION_TERMINATE_ME = 3;
         
     }
     
