@@ -15,7 +15,7 @@ public interface IBasicPassiveUI {
     void addTweet(AbstractTweet aTweet);
     void setOnBasicUIActionListener(IBasicUIActionListener listener);
     
-    void setVisible(boolean visibleFlag);
+    void setUIVisible(boolean visibleFlag);
     
     /**
      * In case there's explicit necessity to show parent JFrame to display the panel,
