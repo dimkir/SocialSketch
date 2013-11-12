@@ -3,8 +3,10 @@ package org.socialsketch.tool.codeposter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import org.apache.log4j.Logger;
 import org.eclipse.egit.github.core.Authorization;
 import org.eclipse.egit.github.core.Comment;
 import org.eclipse.egit.github.core.Gist;
@@ -21,6 +23,9 @@ import org.eclipse.egit.github.core.service.OAuthService;
  */
 public class CodePoster {
 
+    private static final Logger logger = org.apache.log4j.Logger.getLogger(CodePoster.class);
+    
+    
     /**
      * This is reference to gist service objects which does all the heavy lifting.
      * It is initialized by constructor and valid throughout the lifespan of the CodePoster object.
@@ -159,7 +164,8 @@ public class CodePoster {
                     
                     iCodePostComplete.onCodePostComplete(completeEvent);
                 } catch (IOException ex) {
-                    Logger.getLogger(CodePoster.class.getName()).log(Level.SEVERE, null, ex);
+                    logger.error("Error posting code.", ex);
+//                    Logger.getLogger(CodePoster.class.getName()).log(Level.SEVERE, null, ex);
                     iCodePostComplete.onCodePostComplete(new CodePostCompleteEvent("Error message", false /* success flag */));
                 }
                 //throw new UnsupportedOperationException("Not supported yet.");
@@ -188,7 +194,8 @@ public class CodePoster {
                 catch (IOException ex) {
                     // FAILURE POSTING THE COMMENT
                     boolean successFlag = false;
-                    Logger.getLogger(CodePoster.class.getName()).log(Level.SEVERE, null, ex);
+                    logger.error("Error posting comment", ex);
+//                    Logger.getLogger(CodePoster.class.getName()).log(Level.SEVERE, null, ex);
                     String msg = String.format("There was error posting comment for the gist %s. Exception message: %s", 
                                                             gistToCommentId,
                                                             ex.getMessage());
@@ -265,10 +272,158 @@ public class CodePoster {
             
         } catch (IOException ex) {
             System.out.println("There was error probably creating CodePost object(?authrorization)");
-            Logger.getLogger(CodePoster.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
         }
         
     }
+
+    /**
+     * Initiates saving from adapter, this is asynchronous.
+     * 
+     * 
+     * 
+     * @param adapter  NOT null.
+     * @param callback (May Be null, in case we don't care to return success status).
+     *                  is called from worker thread, so ensure proper wrapping if receiving it
+     *                  in Swing.
+     * 
+     */
+    public void saveUpdateFromAdapter(final ICodePostAdapter adapter, final ICodePostComplete callback) {
+        if (adapter == null ){
+            throw new IllegalArgumentException("Adapter parameter cannot be null");
+        }
+        
+        new Thread(){
+
+            @Override
+            public void run() {
+                
+                try {
+                    Gist gist = saveUpdateFromAdapterBlocking(adapter, callback);
+                    CodePostCompleteEvent evt = new CodePostCompleteEvent(gist.getHtmlUrl(), true );
+                    evt.setGistId(gist.getId());
+                    
+                    doCallback(evt);
+                } catch (IOException ex) {
+                    logger.error("Error posting or updating gist from the adapter", ex);
+//                    Logger.getLogger(CodePoster.class.getName()).log(Level.SEVERE, null, ex);
+                    
+                    CodePostCompleteEvent evt = new CodePostCompleteEvent("Error message", false);
+                    evt.setCause(ex);
+                    doCallback(evt);
+                }
+            }
+            
+            void doCallback(CodePostCompleteEvent codePostCompleteEvent){
+                if ( callback != null ){
+                    callback.onCodePostComplete(codePostCompleteEvent);
+                }
+                else{
+                    logger.debug("Callback isn't registered.", new Exception("This is just dummy exception to show the stack trace."));
+                }
+            }
+
+            
+        }.start();
+    }
+    
+
+    /**
+     * This is method
+     * 
+     * @param adapter
+     * @param callback 
+     */
+    private Gist saveUpdateFromAdapterBlocking(ICodePostAdapter adapter, ICodePostComplete callback) throws IOException 
+    {
+		Gist gist = new Gist();
+                if ( adapter.getPreviousPostId() != null ){
+                    gist.setId(adapter.getPreviousPostId());
+                }
+		gist.setPublic(C_IS_GIST_PUBLIC);
+                
+                if ( adapter.getDescription() != null ){
+                    gist.setDescription(adapter.getDescription());
+                }
+                else{
+                    gist.setDescription("Created using code poster component");
+                }
+                
+                
+                Map<String, GistFile> fileMap = prepareFilesMap(adapter);
+                
+//		gist.setFiles(Collections.singletonMap(file.getFilename(), file));
+		gist.setFiles(fileMap);
+                
+                fileListToConsole(gist);
+                
+                
+                
+                if ( adapter.getPreviousPostId() != null){
+                    gist = mGistService.updateGist(gist);
+                }
+                else{
+                    gist = mGistService.createGist(gist);
+                }
+               
+
+//               // we won't really be commenting it here anymore, as at the moment of posting code,
+//               // we don't have reference to the screenshot image URL yet.                  
+//                mGistService.createComment(gist.getId(), 
+//                   "This is comment which can show image of the sketch ![imge](http://s13.postimg.org/6snibyalj/screenshot_155.png)");
+                
+		System.out.println("Created Gist at " + gist.getHtmlUrl());              
+                //return gist.getHtmlUrl();
+                return gist;        
+    }
+
+    //TODO: add valid values.
+    
+    /**
+     * Prepares map of filename to gist file.
+     * 
+     * @param adapter ?? what are valid values ?
+     * @return 
+     */
+    private Map<String, GistFile> prepareFilesMap(ICodePostAdapter adapter) {
+        System.out.println("Called perpareFilesMap()");
+        Map<String, GistFile> map = new HashMap<String, GistFile>();
+        for(int i = 0 ; i < adapter.getFileCount() ; i++){
+            String name = adapter.getFileNameByIndex(i);
+            GistFile gf = new GistFile();
+            gf.setFilename(name);
+            gf.setContent(adapter.getFileContentsByIndex(i));
+            map.put(name, gf);
+            System.out.println("Adding element: " + name );
+        }
+        
+        return map;
+    }
+//    
+//    		GistFile file = new GistFile();
+//		file.setContent(contents);
+//		file.setFilename(fileName);
+
+    /**
+     * Debug method just outputs to console the files.
+     * 
+     * @param gist 
+     */
+    private void fileListToConsole(Gist gist) {
+        Map<String, GistFile> map = gist.getFiles();
+        Set<String> keySet = map.keySet();
+        for(String kkk : keySet ){
+            logger.info("Got file record: [" + kkk + "] with value of length: " + map.get(kkk).getContent().length() );
+        }
+        
+    }
+
+    
+    
+    
+    
+    
     
 
 
