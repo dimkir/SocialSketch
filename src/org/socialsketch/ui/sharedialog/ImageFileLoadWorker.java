@@ -3,10 +3,7 @@ package org.socialsketch.ui.sharedialog;
 import org.socialsketch.ui.sharedialog.ImageFileLoadWorker.ImageEnvelope;
 import java.io.File;
 import java.io.FileFilter;
-import java.net.MalformedURLException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.SwingWorker;
@@ -85,7 +82,7 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
         });
         
         for(File f : filesInDirectory){
-            ImageIcon icon = createImageIconFromFile(f);
+            ImageIcon icon = GraphicsUtils.createImageIconFromFile(f);
             
             if ( icon == null ){
                 System.out.println("Couldn't create icon from file: "+ f.getAbsolutePath());
@@ -173,33 +170,6 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
 //        }
         return envelope;
     }    
-
-    /**
-     * Attempts to create ImageIcon from file. Failable. Returns null on error.
-     * @param f
-     * @return
-     * @throws MalformedURLException 
-     */
-    private ImageIcon createImageIconFromFile(File f) {
-        try {
-//            java.net.URL imgURL =  new URL(f.getAbsolutePath());
-            java.net.URL imgURL =  f.toURL();
-            
-            if (imgURL != null) {
-                String descrForIcon = f.getAbsolutePath();
-                return new ImageIcon(imgURL, descrForIcon);
-                // TODO: ^^ what happens if there's an error?
-            } else {
-                System.err.println("Couldn't find file: " + f.getAbsolutePath());
-                return null;        
-            }
-            
-            
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(ImageFileLoadWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
-    }
 
     /**
      * Container for the processed set of single image file. 

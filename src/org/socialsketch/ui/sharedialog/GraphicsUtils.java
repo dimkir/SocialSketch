@@ -4,6 +4,12 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.ImageIcon;
 
 /**
  * Bunch of "utility" static methods to help with graphics-related operations.
@@ -26,4 +32,26 @@ public class GraphicsUtils {
         g2.dispose();
         return resizedImg;
     }    
+
+    /**
+     * Attempts to create ImageIcon from file. Failable. Returns null on error.
+     * @param f
+     * @return
+     * @throws MalformedURLException
+     */
+    public static ImageIcon createImageIconFromFile(File f) {
+        try {
+            URL imgURL = f.toURL();
+            if (imgURL != null) {
+                String descrForIcon = f.getAbsolutePath();
+                return new ImageIcon(imgURL, descrForIcon);
+            } else {
+                System.err.println("Couldn't find file: " + f.getAbsolutePath());
+                return null;
+            }
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(ImageFileLoadWorker.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
 }
