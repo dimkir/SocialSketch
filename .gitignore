@@ -1,7 +1,7 @@
 nbproject/
 build.xml
 manifest.mf
-*/rubbish
+**/rubbish
 build/
 dist/
 twitter4j.properties
