@@ -1,8 +1,8 @@
 nbproject/
 build.xml
 manifest.mf
-**/rubbish/
+*/rubbish
 build/
 dist/
 twitter4j.properties
-/src/firsttool/rubbish/
+*.log
