@@ -1,10 +1,11 @@
 package org.socialsketch.tool;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.socialsketch.tool.codeposter.ICodePostAdapter;
+import org.socialsketch.codeposter.ICodePostAdapter;
 import processing.app.Sketch;
 import processing.app.SketchCode;
 
@@ -46,6 +47,7 @@ public class SketchAdapter  implements ICodePostAdapter
         
         mDescription = "Processing sketch : " + sketch.getName();
         
+        // add tabs
         for(int  i = 0 ; i < cc ; i++){
             SketchCode code = sketch.getCode(i);
             // what can we do with this code?
@@ -54,6 +56,12 @@ public class SketchAdapter  implements ICodePostAdapter
             mPrograms.put(fileName, program);
             mFileNames.add(fileName);
         }
+        // add data folder.
+        File dataFolder = sketch.getDataFolder();
+        for(File f : dataFolder.listFiles()){
+            System.out.println("File found: " + f);
+        }
+        
     }
 
     
