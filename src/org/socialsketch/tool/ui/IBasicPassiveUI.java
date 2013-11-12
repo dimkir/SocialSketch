@@ -18,9 +18,13 @@ public interface IBasicPassiveUI {
     void setVisible(boolean visibleFlag);
     
     /**
+     * In case there's explicit necessity to show parent JFrame to display the panel,
+     * then this instance will be used.
+     * 
      * This one is meant for using in case we need let's say display 
      * a DialogMessage or smth.
-     * @return 
+     * 
+     * @return NULL in case there's no parent dash frame (eg. we're embedded as panel)
      */
     JFrame getJFrame();
 
