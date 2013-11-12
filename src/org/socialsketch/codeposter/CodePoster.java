@@ -68,20 +68,12 @@ public class CodePoster {
      * @throws IOException 
      */
     public CodePoster() throws IOException{
-        this(CodePoster.spawnBlankCredentials().initFromEnvironment());
+        this(CodeUtils.spawnBlankCredentials().initFromEnvironment());
     }
     
     
     public CodePoster(Credentials credentials) throws IOException{
         this(credentials.getUserName(), credentials.getPassword());
-    }
-    
-    /**
-     * Just method to spawn blank credentials object.
-     * @return 
-     */
-    public static Credentials spawnBlankCredentials(){
-        return new Credentials();
     }
     
     
@@ -235,7 +227,7 @@ public class CodePoster {
     public static void main(String[] args) {
         try {
             // TODO: need to implement testing code.
-            final CodePoster copo = new CodePoster(CodePoster.spawnBlankCredentials().initFromEnvironment()); // throws IOException 
+            final CodePoster copo = new CodePoster(CodeUtils.spawnBlankCredentials().initFromEnvironment()); // throws IOException 
             copo.postCode("This is my code to post lalalala", new ICodePostComplete() {
 
                 @Override
