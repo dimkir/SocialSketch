@@ -11,6 +11,6 @@ public interface IImageEnvelopeReceiver {
      * SHOULD BE RUN ON EDT THREAD!
      * @param imageEnvelope 
      */
-    public void submitImageEnvelope(ImageFileLoadWorker.ImageEnvelope imageEnvelope);
+    public void submitImageEnvelope(ImageScanAndWrapSWorker.ImageEnvelope imageEnvelope);
     
 }

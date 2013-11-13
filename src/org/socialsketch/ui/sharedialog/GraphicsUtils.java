@@ -50,7 +50,7 @@ public class GraphicsUtils {
                 return null;
             }
         } catch (MalformedURLException ex) {
-            Logger.getLogger(ImageFileLoadWorker.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageScanAndWrapSWorker.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }

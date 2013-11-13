@@ -34,6 +34,7 @@ package org.socialsketch.ui.sharedialog;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -161,7 +162,7 @@ public class IconDemoApp extends JFrame {
      * Makes given image be displayed in the central view of the frame.
      * @param icon 
      */
-    public void setCenterImage(Icon icon){
+    void setCenterImage(Icon icon){
         photographLabel.setIcon(icon);
     }
     
@@ -177,7 +178,7 @@ public class IconDemoApp extends JFrame {
             initFrame(params.getParentFrame());
             initOkButtonAdvanced(params.getAdvancedCallback());
             mAdvancedCallback = params.getAdvancedCallback();
-            setupThreads(params.getDirectoryWithImages());
+            setupButtonSupplyThread(params.getDirectoryWithImages());
     }
     
     
@@ -202,7 +203,7 @@ public class IconDemoApp extends JFrame {
         // this is "OK" button which basically picks image and closes window.
         initOkButton(listenerToRunafterClickOkOnEDT);
         
-        setupThreads(directoryWithImages);
+        setupButtonSupplyThread(directoryWithImages);
     }
     
     /**
@@ -216,70 +217,70 @@ public class IconDemoApp extends JFrame {
         return new SSDialogParams();
     }
     
-    /**
-     * Default constructor form the original demo of images.
-     * Loads images from the package resources.
-     */
-    public IconDemoApp() {
-        mAdvancedCallback = null;
-        initFrame(null);
-        // start the image loading SwingWorker in a background thread
-        loadimages.execute();
-    }
+//    /**
+//     * Default constructor form the original demo of images.
+//     * Loads images from the package resources.
+//     */
+//    public IconDemoApp() {
+//        mAdvancedCallback = null;
+//        initFrame(null);
+//        // start the image loading SwingWorker in a background thread
+//        loadimages.execute();
+//    }
     
     
-    private ImageFileLoadWorker  loadImagesFromDirectory;
+    private ImageScanAndWrapSWorker  mImageScanAndWrapWorker;
     
-    /**
-     * SwingWorker class that loads the images a background thread and calls publish
-     * when a new one is ready to be displayed.
-     *
-     * We use Void as the first SwingWroker param as we do not need to return
-     * anything from doInBackground().
-     */
-    private SwingWorker<Void, ThumbnailAction> loadimages = new SwingWorker<Void, ThumbnailAction>() {
-        
-        /**
-         * Creates full size and thumbnail versions of the target image files.
-         */
-        @Override
-        protected Void doInBackground() throws Exception {
-            for (int i = 0; i < imageCaptions.length; i++) {
-                ImageIcon icon;
-                icon = createImageIconFromResource(imagedir + imageFileNames[i], imageCaptions[i]);
-                
-                ThumbnailAction thumbAction;
-                if(icon != null){
-                    
-                    ImageIcon thumbnailIcon = new ImageIcon(GraphicsUtils.getScaledImage(icon.getImage(), 32, 32));
-                    
-                    thumbAction = new ThumbnailAction(icon, thumbnailIcon, imageCaptions[i], null, org.socialsketch.ui.sharedialog.IconDemoApp.this);
-                    
-                }else{
-                    // the image failed to load for some reason
-                    // so load a placeholder instead
-                    thumbAction = new ThumbnailAction(placeholderIcon, placeholderIcon, imageCaptions[i],null, org.socialsketch.ui.sharedialog.IconDemoApp.this);
-                }
-                publish(thumbAction);
-            }
-            // unfortunately we must return something, and only null is valid to
-            // return when the return type is void.
-            return null;
-        }
-        
-        /**
-         * Process all loaded images.
-         */
-        @Override
-        protected void process(List<ThumbnailAction> chunks) {
-            for (ThumbnailAction thumbAction : chunks) {
-                JButton thumbButton = new JButton(thumbAction);
-                // add the new button BEFORE the last glue
-                // this centers the buttons in the toolbar
-                buttonBar.add(thumbButton, buttonBar.getComponentCount() - 1);
-            }
-        }
-    };
+//    /**
+//     * SwingWorker class that loads the images a background thread and calls publish
+//     * when a new one is ready to be displayed.
+//     *
+//     * We use Void as the first SwingWroker param as we do not need to return
+//     * anything from doInBackground().
+//     */
+//    private SwingWorker<Void, ThumbnailAction> loadimages = new SwingWorker<Void, ThumbnailAction>() {
+//        
+//        /**
+//         * Creates full size and thumbnail versions of the target image files.
+//         */
+//        @Override
+//        protected Void doInBackground() throws Exception {
+//            for (int i = 0; i < imageCaptions.length; i++) {
+//                ImageIcon icon;
+//                icon = createImageIconFromResource(imagedir + imageFileNames[i], imageCaptions[i]);
+//                
+//                ThumbnailAction thumbAction;
+//                if(icon != null){
+//                    
+//                    ImageIcon thumbnailIcon = new ImageIcon(GraphicsUtils.getScaledImage(icon.getImage(), 32, 32));
+//                    
+//                    thumbAction = new ThumbnailAction(icon, thumbnailIcon, imageCaptions[i], null, org.socialsketch.ui.sharedialog.IconDemoApp.this);
+//                    
+//                }else{
+//                    // the image failed to load for some reason
+//                    // so load a placeholder instead
+//                    thumbAction = new ThumbnailAction(placeholderIcon, placeholderIcon, imageCaptions[i],null, org.socialsketch.ui.sharedialog.IconDemoApp.this);
+//                }
+//                publish(thumbAction);
+//            }
+//            // unfortunately we must return something, and only null is valid to
+//            // return when the return type is void.
+//            return null;
+//        }
+//        
+//        /**
+//         * Process all loaded images.
+//         */
+//        @Override
+//        protected void process(List<ThumbnailAction> chunks) {
+//            for (ThumbnailAction thumbAction : chunks) {
+//                JButton thumbButton = new JButton(thumbAction);
+//                // add the new button BEFORE the last glue
+//                // this centers the buttons in the toolbar
+//                buttonBar.add(thumbButton, buttonBar.getComponentCount() - 1);
+//            }
+//        }
+//    };
     
     /**
      * Creates an ImageIcon if the path is valid.
@@ -339,6 +340,8 @@ public class IconDemoApp extends JFrame {
     /**
      * Add thumb button to the thumbnail stripe.
      * 
+     * Looks like this is method called from the outside to add the picture.
+     * 
      * @param thumbButton 
      */
     void addThumbButton(JButton thumbButton) {
@@ -355,6 +358,7 @@ public class IconDemoApp extends JFrame {
         JButton okButton = new JButton("OK I HAVE SELECTED");
         okButton.addActionListener(new ActionListener() {
 
+            @Override
             public void actionPerformed(ActionEvent e) {
                 // this happens when button is pressed.
                 // TODO: add code for whether anythign was picked.
@@ -376,6 +380,7 @@ public class IconDemoApp extends JFrame {
        JButton okButton = new JButton("OK,,,, I HAVE SELECTED");
         okButton.addActionListener(new ActionListener() {
 
+            @Override
             public void actionPerformed(ActionEvent e) {
                 // this happens when button is pressed.
                 // TODO: add code for whether anythign was picked.
@@ -401,7 +406,7 @@ public class IconDemoApp extends JFrame {
      * 
      * @param directoryWithImages 
      */
-    private void setupThreads(File directoryWithImages) {
+    private void setupButtonSupplyThread(File directoryWithImages) {
         // loadimages.execute();
         IImageEnvelopeReceiver imageEnvelopeReceiver = new IImageEnvelopeReceiver() {
 
@@ -410,7 +415,7 @@ public class IconDemoApp extends JFrame {
              * and adds them to the JFrame.
              */
             @Override
-            public void submitImageEnvelope(ImageFileLoadWorker.ImageEnvelope imageEnvelope) {
+            public void submitImageEnvelope(ImageScanAndWrapSWorker.ImageEnvelope imageEnvelope) {
                 ThumbnailAction thAction = new ThumbnailAction(imageEnvelope.getMainImage(), 
                                                                imageEnvelope.getThumbnailImage(), 
                                                                imageEnvelope.getDescription(), 
@@ -421,8 +426,8 @@ public class IconDemoApp extends JFrame {
                 addThumbButton(thButton);
             }
         };
-        loadImagesFromDirectory = new ImageFileLoadWorker(directoryWithImages, imageEnvelopeReceiver);
-        loadImagesFromDirectory.execute();    
+        mImageScanAndWrapWorker = new ImageScanAndWrapSWorker(directoryWithImages, imageEnvelopeReceiver);
+        mImageScanAndWrapWorker.execute();    
     }
 
     /**
@@ -450,39 +455,12 @@ public class IconDemoApp extends JFrame {
         
     }
 
-    private class MyWindowListener implements WindowListener {
-
-        public MyWindowListener() {
-        }
-
-        @Override
-        public void windowOpened(WindowEvent e) {
-        }
-
+    
+    private class MyWindowListener extends WindowAdapter {
         @Override
         public void windowClosing(WindowEvent e) {
             // fire call back.
             mAdvancedCallback.onFinishedSelection(new AdvancedCallback.FinishedSelectionEvent(null));
-        }
-
-        @Override
-        public void windowClosed(WindowEvent e) {
-        }
-
-        @Override
-        public void windowIconified(WindowEvent e) {
-        }
-
-        @Override
-        public void windowDeiconified(WindowEvent e) {
-        }
-
-        @Override
-        public void windowActivated(WindowEvent e) {
-        }
-
-        @Override
-        public void windowDeactivated(WindowEvent e) {
         }
     }
 }
