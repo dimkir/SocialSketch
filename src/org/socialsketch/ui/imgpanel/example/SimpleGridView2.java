@@ -6,6 +6,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import javax.swing.JOptionPane;
+import javax.swing.WindowConstants;
 import org.socialsketch.ui.dialogcallbacks.AdvancedCallback;
 import org.socialsketch.ui.dialogcallbacks.AdvancedCallback.FinishedSelectionEvent;
 import org.socialsketch.ui.dialogcallbacks.SSDialogParams;
@@ -28,6 +29,8 @@ public class SimpleGridView2 extends javax.swing.JFrame {
     public SimpleGridView2(SSDialogParams params) {
         
         initComponents();
+        
+        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         
         addWindowListener(new SimpleWindowListener(params.getAdvancedCallback(), new FinishedSelectionEvent(null))); // when NULL means "cancelled" selection
         
@@ -239,7 +242,7 @@ public class SimpleGridView2 extends javax.swing.JFrame {
      * This window listener instance simply catches "window close"
      * event and triggers the event to inform listener of canceled selection.
      */
-    private static class SimpleWindowListener extends WindowAdapter {
+    private class SimpleWindowListener extends WindowAdapter {
         private final AdvancedCallback mCallback;
         private final FinishedSelectionEvent mEvt;
 
@@ -251,6 +254,7 @@ public class SimpleGridView2 extends javax.swing.JFrame {
         @Override
         public void windowClosing(WindowEvent e) {
             mCallback.onFinishedSelection(mEvt);
+            SimpleGridView2.this.dispose();
 //            super.windowClosed(e); //To change body of generated methods, choose Tools | Templates.
         }
         
