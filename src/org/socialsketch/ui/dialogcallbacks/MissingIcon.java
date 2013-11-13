@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */ 
 
-package org.socialsketch.ui.sharedialog;
+package org.socialsketch.ui.dialogcallbacks;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

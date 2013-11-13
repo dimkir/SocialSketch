@@ -2,10 +2,14 @@ package org.socialsketch.ui.imgpanel.example;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import javax.swing.JOptionPane;
 import org.socialsketch.ui.dialogcallbacks.AdvancedCallback;
+import org.socialsketch.ui.dialogcallbacks.AdvancedCallback.FinishedSelectionEvent;
 import org.socialsketch.ui.dialogcallbacks.SSDialogParams;
+import org.socialsketch.ui.imgpanel.ImagePanel;
 import org.socialsketch.ui.imgpanel.ImgRecord;
 
 /**
@@ -19,10 +23,13 @@ public class SimpleGridView2 extends javax.swing.JFrame {
      * Creates new form SimpleGridView2
      * 
      * Needs advanced callback set
+     * @param params evolvable with parameters.
      */
     public SimpleGridView2(SSDialogParams params) {
         
         initComponents();
+        
+        addWindowListener(new SimpleWindowListener(params.getAdvancedCallback(), new FinishedSelectionEvent(null))); // when NULL means "cancelled" selection
         
         mAdvancedCallback =  params.getAdvancedCallback();
         
@@ -45,12 +52,21 @@ public class SimpleGridView2 extends javax.swing.JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 //                JOptionPane.showMessageDialog(SimpleGridView2.this, "Sharing of your creation cancelled");
+                mAdvancedCallback.onFinishedSelection(new AdvancedCallback.FinishedSelectionEvent(null)); // initializing with null, means we aborted.
                 SimpleGridView2.this.dispose();
             }
         });
         
         
         imagePanel1.loadImagesFromDir(params.getDirectoryWithImages());
+        
+        imagePanel1.addOnSelectionListener(new ImagePanel.IOnSelectionListener(){
+            
+            @Override
+            public void onImageSelected(ImgRecord imgRec){
+                lblPhotographLabel.setIcon(imgRec.getIcon());
+            }
+        });
     }
     
     /**
@@ -89,6 +105,7 @@ public class SimpleGridView2 extends javax.swing.JFrame {
         btnShare = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
         imagePanel1 = new org.socialsketch.ui.imgpanel.ImagePanel();
+        lblPhotographLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -101,6 +118,8 @@ public class SimpleGridView2 extends javax.swing.JFrame {
         btnShare.setText("Share your creation!");
 
         btnCancel.setText("No, I don't want the world to see my genious");
+
+        lblPhotographLabel.setText("This is photograph label");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -121,7 +140,9 @@ public class SimpleGridView2 extends javax.swing.JFrame {
                             .addComponent(jLabel1))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(imagePanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(598, 598, 598))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblPhotographLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 578, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -129,17 +150,22 @@ public class SimpleGridView2 extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtTweet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnShare, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(btnCancel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(imagePanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 493, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(txtTweet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btnShare, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(btnCancel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(imagePanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 493, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(3, 3, 3)
+                        .addComponent(lblPhotographLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -176,7 +202,8 @@ public class SimpleGridView2 extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                String C_TEST_DIR_WITH_IMAGES = "d:\\wamp\\www\\vocabuland\\img\\icons";
+//                String C_TEST_DIR_WITH_IMAGES = "d:\\wamp\\www\\vocabuland\\img\\icons";
+                String C_TEST_DIR_WITH_IMAGES = "c:\\Users\\Ernesto Guevara\\Pictures\\10 October";
                 SSDialogParams params = new SSDialogParams();
                 params.setDirectoryWithImages(new File(C_TEST_DIR_WITH_IMAGES));
                 params.setAdvancedCallback(new AdvancedCallback() {
@@ -204,7 +231,30 @@ public class SimpleGridView2 extends javax.swing.JFrame {
     private org.socialsketch.ui.imgpanel.ImagePanel imagePanel1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel lblPhotographLabel;
     private javax.swing.JTextField txtTweet;
     // End of variables declaration//GEN-END:variables
+
+    /**
+     * This window listener instance simply catches "window close"
+     * event and triggers the event to inform listener of canceled selection.
+     */
+    private static class SimpleWindowListener extends WindowAdapter {
+        private final AdvancedCallback mCallback;
+        private final FinishedSelectionEvent mEvt;
+
+        public SimpleWindowListener(AdvancedCallback callback, FinishedSelectionEvent evt) {
+            mCallback = callback;
+            mEvt = evt;
+        }
+
+        @Override
+        public void windowClosing(WindowEvent e) {
+            mCallback.onFinishedSelection(mEvt);
+//            super.windowClosed(e); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        
+    }
         
 }

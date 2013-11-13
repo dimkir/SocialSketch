@@ -10,7 +10,6 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
-import org.socialsketch.ui.sharedialog.ImageScanAndWrapSWorker;
 
 /**
  * Bunch of "utility" static methods to help with graphics-related operations.

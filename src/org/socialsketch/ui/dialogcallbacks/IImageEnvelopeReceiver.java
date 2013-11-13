@@ -1,4 +1,6 @@
-package org.socialsketch.ui.sharedialog;
+package org.socialsketch.ui.dialogcallbacks;
+
+import org.socialsketch.ui.dialogcallbacks.ImageScanAndWrapSWorker;
 
 /**
  *

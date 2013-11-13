@@ -1,6 +1,7 @@
-package org.socialsketch.ui.sharedialog;
+package org.socialsketch.ui.dialogcallbacks;
 
-import org.socialsketch.ui.sharedialog.ImageFileLoadWorker.ImageEnvelope;
+import org.socialsketch.ui.dialogcallbacks.GraphicsUtils;
+import org.socialsketch.ui.dialogcallbacks.ImageScanAndWrapSWorker.ImageEnvelope;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.List;
@@ -19,7 +20,7 @@ import javax.swing.SwingWorker;
 //TODO: single responsibility of this class should be just loading and converting images.
 // no Thumbnail Action creation should be. This Thumbnail action should be the responsibility of 
 // the IconDemoApp as it is intrinsic to him.
-public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
+public class ImageScanAndWrapSWorker extends SwingWorker<Void, ImageEnvelope> {
 
     private final File mDir;
 //    private final IconDemoApp mParentApp;
@@ -44,7 +45,7 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
      * 
      * @throws IllegalArgumentException if dirWithImages is NULL or if imageEnvelopReceiver is null.
      */
-    ImageFileLoadWorker(File dirWithImages, IImageEnvelopeReceiver imageEnvelopeReceiver) 
+    public ImageScanAndWrapSWorker(File dirWithImages, IImageEnvelopeReceiver imageEnvelopeReceiver) 
     {
         if ( imageEnvelopeReceiver == null ){
             throw new IllegalArgumentException("imageEnvelopeReceiver parameter cannot be NULL. " + 
@@ -188,19 +189,19 @@ public class ImageFileLoadWorker extends SwingWorker<Void, ImageEnvelope> {
             mThumbnail= thumbnailIcon;
             mDescription = descr;
         }
-        Icon getMainImage(){
+        public Icon getMainImage(){
             return mMainImage;
         }
 
-        Icon getThumbnailImage() {
+        public Icon getThumbnailImage() {
             return mThumbnail;
         }
 
-        String getDescription() {
+        public String getDescription() {
             return mDescription;
         }
 
-        File getOriginPath() {
+        public File getOriginPath() {
             return mOriginPath;
         }
     }
