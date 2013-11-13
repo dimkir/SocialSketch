@@ -81,4 +81,8 @@ public class SSDialogParams {
     }
     
     
+    public IconDemoApp spawnIconWindowInstance(){
+        return new IconDemoApp(this);
+    }
+    
 }
