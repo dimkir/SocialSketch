@@ -22,9 +22,9 @@
  */
 package org.socialsketch.tool;
 
-import org.socialsketch.ui.sharedialog.AdvancedCallback;
+import org.socialsketch.ui.dialogcallbacks.AdvancedCallback;
 import org.socialsketch.ui.sharedialog.IconDemoApp;
-import org.socialsketch.ui.sharedialog.SSDialogParams;
+import org.socialsketch.ui.dialogcallbacks.SSDialogParams;
 import org.socialsketch.tool.ISketchModder.IOnModderActionListener;
 import org.socialsketch.tool.tweetqueue.AbstractTweet;
 import org.socialsketch.tool.ISketchModder.ModderAction;
@@ -47,6 +47,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
+import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import org.socialsketch.codeposter.CodePostCompleteEvent;
 import org.socialsketch.codeposter.CodePoster;
@@ -55,6 +56,7 @@ import org.socialsketch.tool.ui.DashFrame;
 import org.socialsketch.tool.ui.Dashboard;
 import org.socialsketch.tool.ui.dialogs.MessageDialogClickable;
 import org.socialsketch.tool.utils.ToolUtils;
+import org.socialsketch.ui.imgpanel.example.SimpleGridView2;
 import processing.app.Editor;
 import processing.app.Sketch;
 import processing.app.syntax.JEditTextArea;
@@ -523,7 +525,8 @@ class PopUpDemo extends JPopupMenu {
                             }
                     }
                 });
-        IconDemoApp iconFrame = new IconDemoApp(ssparams);
+        JFrame iconFrame = new SimpleGridView2(ssparams);
+//        JFrame iconFrame = new IconDemoApp(ssparams);
         iconFrame.setVisible(true);
     }
 
